@@ -31,7 +31,7 @@ class UserTest < ActiveSupport::TestCase
     assert_not @user.valid?
   end
 
-  #length test
+  #length test (shoudl be failed)
   test "fname should not be too long" do
     @user.fname = "a"*51
     assert_not @user.valid?
@@ -47,9 +47,16 @@ class UserTest < ActiveSupport::TestCase
   test "email should not be too long" do
     @user.email = "a"*244 + "@example.com"
     assert_not @user.valid?
-
   end
 
+  #validate email formate (shoudl be valid)
+  test "email validation should accept valid address" do
+    valid_address = %w[user@example.com USER@sfu.ca U_SE-RRR@sfu.org.ca first.last@qq.im alex+tom@sample.cn]
+    valid_address.each do |valid_address|
+      @user.email = valid_address
+      assert @user.valid?, "#{invalid_address.inspect} should be invalid"
+    end
+  end
   # test "the truth" do
   #   assert true
   # end
