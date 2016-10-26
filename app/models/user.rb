@@ -9,6 +9,4 @@ class User < ActiveRecord::Base
   # email should not be empty
   validates :email, presence: true, lenght: {maximum: 255}, format: {with: VALID_EMAIL_REGEX}, :uniqueness => {case_sensitive => false, message => "has been registered"}
 
-
-
 end
