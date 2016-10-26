@@ -3,6 +3,7 @@ ruby '2.3.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.2.5'
+gem 'bcrypt', '3.1.11'
 # Use postgresql as the database for Active Record
 gem 'pg'
 gem 'rails_12factor', group: :production
