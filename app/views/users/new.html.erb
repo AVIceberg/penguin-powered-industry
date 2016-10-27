@@ -1,5 +1,7 @@
+<% provide(:title, 'Sign up') %>
+
 <h1>Set up new account</h1>
-<% form_for @user do |f| %>
+<%= form_for(@user) do |f| %>
   <% if @user.errors.any? %>
     <h2>Errors:</h2>
     <ul>
@@ -9,32 +11,37 @@
     </ul>
   <% end %>
 
-  <p>
-    <%= f.label "First name", :fname %>
-    <%= f.text_field :fname %>
-  </p>
-  <p>
-    <%= f.label "last name", :fname %>
-    <%= f.text_field :lname %>
-  </p>
-  <p>
-    <%= f.label :nickname %>
-    <%= f.text_field :nickname %>
-  </p>
-  <p>
-    <%= f.label "Email Address", :email %>
-    <%= f.text_field :email %>
-  </p>
-  <p>
-    <%= f.label "Password", :password %>
-    <%= f.text_field :password %>
-  </p>
-  <p>
-    <%= f.label "Confirm Password", :password %> # not sure yet
-    <%= f.text_field :password %> # not sure yet
-  </p>
+<div class="row">
+  <div class="col-mid-6 col-md-offset-3">
+    <p>
+      <%= f.label :fname, "First name:" %>
+      <%= f.text_field :fname %>
+    </p>
+    <p>
+      <%= f.label :fname, "Last name:" %>
+      <%= f.text_field :lname %>
+    </p>
+    <p>
+      <%= f.label :nickname, "Nickname:" %>
+      <%= f.text_field :nickname %>
+    </p>
+    <p>
+      <%= f.label :email, "Email Address:" %>
+      <%= f.email_field :email %>
+    </p>
+    <p>
+      <%= f.label :password, "Password:" %>
+      <%= f.password_field :password %>
+    </p>
+    <p>
+      <%= f.label :password,"Confirm Password:" %>
+      <%= f.password_field :password_confirmation %>
+    </p>
 
-  <p>
-    <%= f.submit "Create Your Account!" %> <br/>
-  </p>
+    <p>
+      <%= f.submit "Create Your Account!", class: "btn btn-primary" %> <br/>
+    </p>
+  </div>
+</div>
+
 <% end %>
