@@ -27,7 +27,7 @@ class UserTest < ActiveSupport::TestCase
 
   #presence of email
   test "email should be presnet" do
-    @user.name = ""
+    @user.email = ""
     assert_not @user.valid?
   end
 
@@ -54,7 +54,9 @@ class UserTest < ActiveSupport::TestCase
     valid_address = %w[user@example.com USER@sfu.ca U_SE-RRR@sfu.org.ca first.last@qq.im alex+tom@sample.cn]
     valid_address.each do |valid_address|
       @user.email = valid_address
-      assert @user.valid?, "#{invalid_address.inspect} should be invalid"
+      assert @user.valid?
+      #, "#{invalid_address.inspect} should be invalid"
+      # Dont't under stand
     end
   end
 
@@ -62,7 +64,7 @@ class UserTest < ActiveSupport::TestCase
     mixed_case_email = "Foo@ExamPLE.CoM"
     @user.email = mixed_case_email
     @user.save
-    asser_equal mixed_case_email.downcase, @user.reload.email
+    assert_equal mixed_case_email.downcase, @user.reload.email
   end
 
   #test case for uniqueness
