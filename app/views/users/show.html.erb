@@ -1,5 +1,6 @@
 <h1>Hi <%= @user.nickname %>, here is your profile</h1>
 <p>
+  <%= gravatar_for @user %> <br/>
   <%= @user.nickname %> <br/>
   <%= @user.email %>
 </p>
