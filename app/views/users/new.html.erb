@@ -1,2 +1,40 @@
-<h1>Users#new</h1>
-<p>Find me in app/views/users/new.html.erb</p>
+<h1>Set up new account</h1>
+<% form_for @user do |f| %>
+  <% if @user.errors.any? %>
+    <h2>Errors:</h2>
+    <ul>
+      <% @user.errors.full_message.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <p>
+    <%= f.label "First name", :fname %>
+    <%= f.text_field :fname %>
+  </p>
+  <p>
+    <%= f.label "last name", :fname %>
+    <%= f.text_field :lname %>
+  </p>
+  <p>
+    <%= f.label :nickname %>
+    <%= f.text_field :nickname %>
+  </p>
+  <p>
+    <%= f.label "Email Address", :email %>
+    <%= f.text_field :email %>
+  </p>
+  <p>
+    <%= f.label "Password", :password %>
+    <%= f.text_field :password %>
+  </p>
+  <p>
+    <%= f.label "Confirm Password", :password %> # not sure yet
+    <%= f.text_field :password %> # not sure yet
+  </p>
+
+  <p>
+    <%= f.submit "Create Your Account!" %> <br/>
+  </p>
+<% end %>
