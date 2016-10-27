@@ -9,8 +9,14 @@
   <%= csrf_meta_tags %>
 </head>
 <body>
+  <%= render 'layouts/header' %>
+  <div class="container">
+    <%= yield %>
+    <%= render 'layouts/footer' %>
+    <%= debug(params) if Rails.env.development? %>
+  </div>
 
-<%= yield %>
+<!-- built in debug method to display debug info, will be delete when deploying -->
 
 </body>
 </html>
