@@ -9,7 +9,8 @@ class UsersController < ApplicationController
 
   def create
     @user = User.new(user_params)
-
+    @user.level = 1
+    @user.max = 0
     if @user.save
       session[:id] = @user.id
       redirect_to @user, :notice => "Success!"

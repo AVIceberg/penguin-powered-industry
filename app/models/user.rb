@@ -18,7 +18,10 @@ class User < ActiveRecord::Base
   validates :password,
    presence: true,
    length:{minimum: 6},
-   if: :password
+   if: :password # Will only check validation from forms if password changes
+
+  validates :level,
+   numericality: { only_integer: true, greater_than: 0}
 
 
 end
