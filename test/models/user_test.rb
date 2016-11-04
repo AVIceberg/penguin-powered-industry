@@ -12,21 +12,21 @@ class UserTest < ActiveSupport::TestCase
   end
 
   #test for the user name
-  test "fname should be presnet" do
+  test "fname should be present" do
     @user.fname = "  "
     assert_not @user.valid?
   end
-  test "lname should be presnet" do
+  test "lname should be present" do
     @user.lname = "  "
     assert_not @user.valid?
   end
-  test "nickname should be presnet" do
+  test "nickname should be present" do
     @user.nickname = "  "
     assert_not @user.valid?
   end
 
   #presence of email
-  test "email should be presnet" do
+  test "email should be present" do
     @user.email = ""
     assert_not @user.valid?
   end

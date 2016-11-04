@@ -11,12 +11,11 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
 
     if @user.save
-      redirect_to user_path(params[:id]), :notice => "Success!"
+      redirect_to @user, :notice => "Success!"
     else
       render "new"
     end
   end
-
 
   def edit
 
@@ -34,4 +33,8 @@ class UsersController < ApplicationController
 
   end
 
+    private
+      def user_params
+        params.require(:user).permit(:fname, :lname, :nickname, :email, :password, :password_confirmation)
+      end
 end
