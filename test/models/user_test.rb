@@ -37,7 +37,7 @@ class UserTest < ActiveSupport::TestCase
     @user.max = -1
     assert_not @user.valid?
     @user.max = 20000000
-    assert_not @user.valid?
+    assert @user.valid?
   end
 
   #presence of email
