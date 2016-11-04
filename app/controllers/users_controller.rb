@@ -4,13 +4,14 @@ class UsersController < ApplicationController
   end
 
   def index
-    @users = Users.all
+    @users = User.all
   end
 
   def create
     @user = User.new(user_params)
 
     if @user.save
+      session[:id] = @user.id
       redirect_to @user, :notice => "Success!"
     else
       render "new"
