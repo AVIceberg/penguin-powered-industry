@@ -19,7 +19,14 @@ class UsersController < ApplicationController
   end
 
   def edit
-
+    @user = User.find(params[:id])
+    if user_is_logged_in?
+      if @user.id != session[:id]
+        redirect_to User.find(session[:id]), :notice => "You cannot edit other people's accounts!"
+      end
+    else
+      redirect_to welcome, :notice => "Please sign in before editing your account."
+    end
   end
 
   def show
@@ -27,7 +34,12 @@ class UsersController < ApplicationController
   end
 
   def update
-
+    @user = User.find(params[:id])
+    if @user.update(params[:user].permit(:fname, :lname, :email))
+      redirect_to @user, notice: 'Account was successfully updated'
+    else
+      render :edit
+    end
   end
 
   def destroy

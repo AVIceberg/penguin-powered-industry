@@ -1,8 +1,8 @@
 <h1> Profile for <%= @user.nickname %> </h1>
 
-<%= gravatar_for @user %> <br/>
-<%= @user.nickname %> <br/>
-<%= @user.email %>
+<div id="Avatar"> <%= gravatar_for @user %> </div>
+<p> Nickname: <%= @user.nickname %> </p>
+<p> Email Address: <%= @user.email %> </p>
 
 <% if user_is_logged_in? %>
   <%= button_to 'Edit profile', edit_user_path(@user), :class => "button", :method => :get %>
