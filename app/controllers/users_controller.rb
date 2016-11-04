@@ -11,6 +11,7 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
     @user.level = 1
     @user.max = 0
+    @user.toy = 0
     @user.admin = false
     if @user.save
       session[:id] = @user.id
