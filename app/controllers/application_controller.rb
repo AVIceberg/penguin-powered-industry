@@ -1,5 +1,11 @@
 class ApplicationController < ActionController::Base
   helper_method :user_is_logged_in?
+  helper_method :logout
+
+  def logout
+    reset_session
+  end
+
   def user_is_logged_in?
     !!session[:id]
   end
