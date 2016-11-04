@@ -20,18 +20,25 @@ class UsersController < ApplicationController
   end
 
   def edit
-    @user = User.find(params[:id])
-    if user_is_logged_in?
-      if @user.id != session[:id]
-        redirect_to User.find(session[:id]), :notice => "You cannot edit other people's accounts!"
+    @user = User.find_by_id(params[:id])
+    if @user
+      if user_is_logged_in?
+        if @user.id != session[:id]
+          redirect_to User.find(session[:id]), :notice => "You cannot edit other people's accounts!"
+        end
+      else
+        redirect_to url_for(:controller => :welcome, :action => :index), :notice => "Please log in before editing your account."
       end
     else
-      redirect_to welcome, :notice => "Please sign in before editing your account."
+      redirect_to url_for(:controller => :welcome, :action => :index), :notice => "Invalid user!"
     end
   end
 
   def show
-    @user = User.find(params[:id])
+    @user = User.find_by_id(params[:id])
+    if !@user
+      redirect_to url_for(:controller => :welcome, :action => :index), :notice => "Invalid user!"
+    end
   end
 
   def update
