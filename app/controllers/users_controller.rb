@@ -55,7 +55,16 @@ class UsersController < ApplicationController
   end
 
   def destroy
-
+    @user = User.find(params[:id])
+    if @user.present?
+      if user_is_logged_in?
+        if @user.id == session[:id]
+          reset_session
+        end
+      end
+      @user.destroy
+    end
+      redirect_to action: "index", :notice => "User was successfully destroyed."
   end
 
     private
