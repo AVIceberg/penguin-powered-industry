@@ -4,6 +4,7 @@
     <nav>
       <ul class="nav navbar-nav navbar-right">
         <li><%= link_to "Home", root_path %></li>
+        <li><%= link_to "User List", users_path %></li>
         <li><%= link_to "Help", '#' %></li>
         <%if user_is_logged_in? %>
           <li><%= link_to "Logout", { :controller => :application, :action => "logout"}, data: {confirm: "Are you sure you wish to logout?"}, :method => :delete%></li>
