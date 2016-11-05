@@ -1,20 +1,19 @@
 require 'test_helper'
 
-class UsersControllerTest < ActionController::TestCase
+class UsersControllerTest < ActionDispatch::IntegrationTest
   test "should get new" do
-    get :new
+    get signup_path
     assert_response :success
   end
-=begin
-#under construction
+
   test "valid signup and redirect" do
-  	get :new
+  	get signup_path
   	assert_difference 'User.count', 1 do
-  		post :create, params: { user: { fname: "tester22", lname: "tester22", nickname: "tester22", email: "tester@testers.com",
-  											password: "testers", password_confirmation: "testers" } }
+  		post users_path,  user: { fname: "tester22", lname: "tester22", nickname: "tester22", email: "tester@testers.com",
+  											password: "testers", password_confirmation: "testers" } 
   	end
   	follow_redirect!
-  	assert_template 'users/profile'
+  	assert_template 'users/show'
   end
-=end
+
 end
