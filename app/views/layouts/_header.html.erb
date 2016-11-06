@@ -1,14 +1,14 @@
 <header class="navbar navbar-fixed-top navbar-inverse">
   <div class="container">
-    <%= link_to "sample app", '#', id: "logo" %>
     <nav>
       <ul class="nav navbar-nav navbar-right">
         <li><%= link_to "Home", root_path %></li>
-        <li><%= link_to "Help", '#' %></li>
+        <li><%= link_to "User List", users_path %></li>
+        <!--<li><%= link_to "Help", '#' %></li> Temporarily removed, as it serves no purpose -->
         <%if user_is_logged_in? %>
-          <li><%= link_to "Logout", { :controller => "application", :action => "logout"}, data: {confirm: "Are you sure you wish to logout?"}, :method => :delete%></li>
+          <li><%= link_to "Logout", { :controller => "application", :action => "logout", id: session[:id]}, data: {confirm: "Are you sure you wish to logout?"}, :method => :delete%></li>
         <% else %>
-          <li><%= link_to "Login", '#' %></li>
+          <li><%= link_to "Login", root_path %></li>
         <% end %>
       </ul>
     </nav>

@@ -1,0 +1,32 @@
+<p id="notice"><%= notice %></p>
+
+<h1> List of Penguin-Powered Industry Users </h1>
+
+<table>
+  <thead>
+    <tr>
+      <th> Username </th>
+      <th> Level </th>
+      <% if user_is_logged_in? %>
+        <% if User.find_by_id(session[:id]).admin == true %>
+          <th colspan="3"></th>
+        <% end %>
+      <% end %>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @users.each do |user| %>
+    <tr>
+      <td><%= link_to user.nickname, user %></td>
+      <td><%= user.level %></td>
+      <% if user_is_logged_in? %>
+        <% if User.find_by_id(session[:id]).admin == true %>
+          <td class="option"><%= link_to "Edit User", edit_user_path(user) %></td>
+          <td class="option"><%= link_to "Delete User", user, method: :delete, data: { confirm: "Are you sure you wish to delete this user?"}%> </td>
+        <% end %>
+      <% end %>
+    </tr>
+    <% end %>
+  </tbody>
+</table>

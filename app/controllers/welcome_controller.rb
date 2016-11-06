@@ -7,4 +7,19 @@ class WelcomeController < ApplicationController
     end
   end
 
+  # Attempts to create a session for the user's browser, given the relevant information
+  def login
+    @user = User.find_by nickname: params[:nickname]
+    if @user
+      if (@user.is_password?(params[:password]))
+        session[:id] = @user.id
+        redirect_to url_for(:controller => :users, :action => :show, id: @user.id)
+      else
+        redirect_to action: "index", :notice => "Login failed. Invalid password."
+      end
+    else
+      redirect_to action: "index", :notice => "Login failed. Invalid username."
+    end
+  end
+
 end

@@ -1,5 +1,4 @@
 <% provide(:title, 'Profile') %>
-
 <h1> Profile for <%= @user.nickname %> </h1>
 
 <div id="Avatar"> <%= gravatar_for @user %> </div>
@@ -9,7 +8,7 @@
 <p> Maximum Toys Ever Produced: <%= @user.max %> </p>
 
 <% if user_is_logged_in? %>
-  <% if session[:id] == @user.id %>
+  <% if session[:id] == @user.id or User.find_by_id(session[:id]).admin == true%>
     <%= button_to 'Edit profile', edit_user_path(@user), :class => "button", :method => :get %>
   <% end %>
 <% end %>

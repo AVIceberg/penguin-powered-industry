@@ -26,7 +26,9 @@ class UsersController < ApplicationController
     if @user
       if user_is_logged_in?
         if @user.id != session[:id]
-          redirect_to User.find(session[:id]), :notice => "You cannot edit other people's accounts!"
+          if User.find_by_id(session[:id]).admin == false
+            redirect_to User.find(session[:id]), :notice => "You cannot edit other people's accounts!"
+          end
         end
       else
         redirect_to url_for(:controller => :welcome, :action => :index), :notice => "Please log in before editing your account."
@@ -53,7 +55,16 @@ class UsersController < ApplicationController
   end
 
   def destroy
-
+    @user = User.find(params[:id])
+    if @user.present?
+      if user_is_logged_in?
+        if @user.id == session[:id]
+          reset_session
+        end
+      end
+      @user.destroy
+    end
+      redirect_to action: "index", :notice => "User was successfully destroyed."
   end
 
     private

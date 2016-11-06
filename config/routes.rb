@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   get '/signup', to: 'users#new'
+  get '/login', to: 'welcome#login'
 
   resources :application do
     member do
