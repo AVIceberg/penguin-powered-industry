@@ -37,6 +37,15 @@ ActiveRecord::Schema.define(version: 20161104220542) do
     t.datetime "updated_at",      null: false
   end
 
+  create_table "locations", force: :cascade do |t|
+    t.string   "name"
+    t.integer  "latitude"
+    t.integer  "longitude"
+    t.string   "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "measurements", force: :cascade do |t|
     t.string   "type"
     t.datetime "created_at", null: false
@@ -104,6 +113,13 @@ ActiveRecord::Schema.define(version: 20161104220542) do
     t.integer  "ice"
     t.integer  "total"
     t.integer  "trainer_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "trainers", force: :cascade do |t|
+    t.string   "trainame"
+    t.integer  "trailevel"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
