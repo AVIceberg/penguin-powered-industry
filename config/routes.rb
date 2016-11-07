@@ -3,6 +3,7 @@ Rails.application.routes.draw do
  # post '/signup', to: 'users#new'
   get '/login', to: 'welcome#login'
   get '/about', to: 'welcome#about'
+  post '/signup', to: 'users#new'
 
   resources :application do
     member do
