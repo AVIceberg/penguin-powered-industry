@@ -18,18 +18,18 @@ class UsersControllerTest < ActionController::TestCase
   test "enter user list" do
 
     #@user.save
-    session[:user_id]=1
+    session[:id]=1
     get :index
-    assert_response :success
+    assert_response :redirect
 
   end
 
   test "enter edit page" do
 
     #@user.save
-    session[:user_id]=0
-    get :edit , id: session[:user_id]
-    assert_response :redirect
+    session[:id]=0
+    get :edit , id: session[:id]
+    assert_response :success
 
   end
 

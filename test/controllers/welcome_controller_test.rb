@@ -15,7 +15,7 @@ class WelcomeControllerTest < ActionController::TestCase
 
   test "the user who want to login should have already sign up with a user name" do
 
-     get :login, :nickname => "Dem"
+     get :login, :nickname => "Demo"
      assert_not_equal  flash[:danger], "Login failed. Invalid username."
 
 
@@ -23,7 +23,7 @@ class WelcomeControllerTest < ActionController::TestCase
 
   test "match the username and pass" do
 
-     get :login, :nickname => "Demo", :password => "teste"
+     get :login, :nickname => "Demo", :password => "tested"
      assert_not_equal  flash[:danger], "Login failed. Invalid password."
 
   end
