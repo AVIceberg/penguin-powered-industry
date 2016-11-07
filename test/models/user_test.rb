@@ -90,12 +90,7 @@ class UserTest < ActiveSupport::TestCase
     assert_not duplicated_user.valid?
   end
 
-  test "enter user list" do
-
-    @user.save
-    
-
-  end
+  
 
 
   # test "the truth" do
