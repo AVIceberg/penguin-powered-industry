@@ -1,3 +1,4 @@
+File.dirname(__FILE__) + '/../test_helper'
 class User < ActiveRecord::Base
 
   def password=(password)
@@ -30,6 +31,7 @@ class User < ActiveRecord::Base
 
   validates :level,
    numericality: { only_integer: true, greater_than: 0}
-
+  validates :max, numericality: { greater_than_or_equal_to: 0 }
+  
 
 end

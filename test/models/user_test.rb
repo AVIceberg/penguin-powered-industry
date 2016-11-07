@@ -1,4 +1,4 @@
-require 'test_helper'
+require File.dirname(__FILE__) + '/../test_helper'
 
 class UserTest < ActiveSupport::TestCase
 
@@ -89,6 +89,14 @@ class UserTest < ActiveSupport::TestCase
     @user.save
     assert_not duplicated_user.valid?
   end
+
+  test "enter user list" do
+
+    @user.save
+    
+
+  end
+
 
   # test "the truth" do
   #   assert true
