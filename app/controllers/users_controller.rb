@@ -6,10 +6,8 @@ class UsersController < ApplicationController
   def index
     @users = User.all
     #@users = User.all
-    if user_is_logged_in?
-      redirect_to controller: "welcome", action: "index"
-    end
-    
+
+
   end
 
   def create

@@ -20,7 +20,7 @@ class UsersControllerTest < ActionController::TestCase
     #@user.save
     session[:id]=1
     get :index
-    assert_response :redirect
+    assert_response :success
 
   end
 
