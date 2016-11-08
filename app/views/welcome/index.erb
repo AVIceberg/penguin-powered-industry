@@ -2,10 +2,10 @@
 
 <h1>Welcome to Penguin Powered Industry</h1>
 
-<%=form_tag("/login", method: "get") do %>
+<%=form_tag("/login", method: "post") do %>
 
 <div class="row">
-  <div class="col-mid-6 col-md-offset-3">
+  <div class="col-mid-6 col-md-offset-1">
     <p>
       <%= label_tag :nickname, "Username:" %>
       <%= text_field_tag :nickname, "", class: 'form-control' %>
@@ -24,4 +24,4 @@
 <% end %>
 
 
-<h3><%= button_to "Sign up", signup_path %></h3>
+<h3><%= button_to "Sign up", signup_path, :method => "get" %></h3>
