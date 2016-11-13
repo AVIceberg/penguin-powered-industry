@@ -26,7 +26,7 @@ class UsersController < ApplicationController
     if @user
       if user_is_logged_in?
         if @user.id != session[:id]
-          if User.find_by_id(session[:id]).admin == false
+          if !user_is_admin?
             redirect_to User.find(session[:id]), :notice => "You cannot edit other people's accounts!"
           end
         end
