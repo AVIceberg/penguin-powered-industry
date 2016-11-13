@@ -3,7 +3,7 @@ Rails.application.routes.draw do
  # post '/signup', to: 'users#new'
   post '/login', to: 'welcome#login'
   get '/about', to: 'welcome#about'
-
+  get '/game', to: 'game#gamepage'
   resources :application do
     member do
       delete 'logout'
