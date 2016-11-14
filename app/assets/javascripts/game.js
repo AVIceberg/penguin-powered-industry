@@ -1,7 +1,7 @@
 // Place all the behaviors and hooks related to the matching controller here.
 // All this logic will automatically be available in application.js.
 
-window.onload=function(){ pixi1(); };
+window.onload=function(){ pixi1(); initialize();};
 function init(){
 
   var stage = new createjs.Stage("demoCanvas");
@@ -95,3 +95,46 @@ function create() {
 
 function update() {
 }
+
+
+// GAME LOGIC //
+// Initializes all necessary JS variables and adds required events
+function initialize()
+{
+    var clickingArea = document.getElementById("clicking-area");
+
+    // Temporary Appearance for clicking canvas
+    var click = clickingArea.getContext("2d");
+    click.fillStyle=("#48489D");
+    click.fillRect(0, 0, 200, 200);
+   // Clicking Canvas appearance ends
+
+    document.getElementById("nickname").innerHTML = gon.strNickname + "'s Workshop";
+    document.getElementById("clicking-area").addEventListener("click", incrementToys, false);
+    updateToys();
+
+}
+// Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
+function incrementToys()
+{
+  var iBase = 1;
+  var fMultiplier = 1; // Placeholder
+
+  gon.iToys = gon.iToys + iBase * fMultiplier;
+  updateToys();
+}
+
+// Updates the displayed toys on screen
+function updateToys()
+{
+  document.getElementById("toys").innerHTML = gon.iToys + " toys";
+}
+var callSave = function(){
+$.ajax({
+  url: "save",
+  type: "put",
+  data: {toys: Number(gon.iToys)}
+});
+}
+
+$(document).on("click", "#save-button", callSave);

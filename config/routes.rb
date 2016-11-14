@@ -4,7 +4,8 @@ Rails.application.routes.draw do
   post '/login', to: 'welcome#login'
   get '/about', to: 'welcome#about'
   get '/game', to: 'game#gamepage'
-  
+  put '/save', to: 'game#save'
+
   resources :application do
     member do
       delete 'logout'

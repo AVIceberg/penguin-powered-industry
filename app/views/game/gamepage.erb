@@ -1,22 +1,33 @@
+<html>
+<head>
+  <%= include_gon %>
+</head>
+<body>
+  <div id="user-options">
+    <button id="save-button">Save</button>
+  </div>
+
+  <div id="click-subsection">
+    <h2 id="nickname"></h2>
+    <h3 id="toys" ></h3>
+
+    <canvas id="clicking-area" width="200" height="200">
+    </canvas>
+  </div>
 
 
-<div id="clicking-area">
-  
+  <div>
 
-</div>
+    <canvas  id="demoCanvas" width="500" height="300">
+    </canvas>
 
+  </div>
+  <div id="phaser"></div>
 
-<div>
-
-  <canvas  id="demoCanvas" width="500" height="300">
-  </canvas>
-
-</div>
-<div id="phaser"></div>
-
-
-<script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
-<script src="https://code.createjs.com/tweenjs-0.6.2.min.js"></script>
-<script src="https://github.com/photonstorm/phaser/releases/download/v2.6.2/phaser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.0/pixi.js"></script>
-<%= content_tag(:div, "", id: 'bunnypath', data:{path_to_asset: asset_path("cat.png")}) %>
+  <script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+  <script src="https://code.createjs.com/tweenjs-0.6.2.min.js"></script>
+  <script src="https://github.com/photonstorm/phaser/releases/download/v2.6.2/phaser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.0/pixi.js"></script>
+  <%= content_tag(:div, "", id: 'bunnypath', data:{path_to_asset: asset_path("cat.png")}) %>
+</body>
+</html>
