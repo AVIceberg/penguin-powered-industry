@@ -486,6 +486,7 @@ function initialize()
     document.getElementById("nickname").innerHTML = gon.strNickname + "'s Workshop";
     document.getElementById("clicking-area").addEventListener("click", incrementToys, false);
     updateToys();
+    var timeinterval = setInterval(updateClock(gon.strTimeLeft), 1000);
 
 }
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
@@ -512,3 +513,33 @@ $.ajax({
 }
 
 $(document).on("click", "#save-button", callSave);
+
+
+
+
+
+
+
+/******CLOCK SCRIPT********/        
+
+//var save_interval = 0;   
+function updateClock(time_left) {
+  function updateClock2() {
+    if(time_left <= 1) {
+      clearInterval(timeinterval);
+    }
+/*
+    if(save_interval == interval_wanted) {
+
+         // save it
+
+      save_interval = 0;
+    }
+    save_interval = save_interval + 1;
+*/
+    time_left = time_left - 1;
+    document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
+    document.getElementById("seconds").innerHTML = time_left % 60;
+  }
+  var timeinterval = setInterval(updateClock2, 1000);
+}

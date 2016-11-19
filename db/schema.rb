@@ -11,10 +11,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+<<<<<<< HEAD
 ActiveRecord::Schema.define(version: 20161110224154) do
+=======
+ActiveRecord::Schema.define(version: 20161119082447) do
+>>>>>>> timer_and_event
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+  enable_extension "adminpack"
 
   create_table "ar_internal_metadata", primary_key: "key", force: :cascade do |t|
     t.string   "value"
@@ -49,6 +54,7 @@ ActiveRecord::Schema.define(version: 20161110224154) do
     t.integer  "max",             limit: 8
     t.boolean  "admin"
     t.integer  "toys",            limit: 8
+    t.integer  "timeleft"
   end
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
