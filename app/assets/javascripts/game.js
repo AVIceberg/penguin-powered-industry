@@ -146,12 +146,23 @@ $(document).on("click", "#save-button", callSave);
 
 
 
-/******CLOCK SCRIPT********/           
+/******CLOCK SCRIPT********/        
+
+//var save_interval = 0;   
 function updateClock(time_left) {
   function updateClock2() {
     if(time_left <= 1) {
       clearInterval(timeinterval);
     }
+/*
+    if(save_interval == interval_wanted) {
+
+         // save it
+
+      save_interval = 0;
+    }
+    save_interval = save_interval + 1;
+*/
     time_left = time_left - 1;
     document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
     document.getElementById("seconds").innerHTML = time_left % 60;
