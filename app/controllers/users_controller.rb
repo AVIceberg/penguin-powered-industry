@@ -13,6 +13,7 @@ class UsersController < ApplicationController
     @user.max = 0
     @user.toys = 0
     @user.admin = false
+    @user.timeleft = 45 * 60
     if @user.save
       session[:id] = @user.id
       redirect_to @user, :notice => "Success!"

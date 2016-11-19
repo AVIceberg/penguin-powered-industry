@@ -11,10 +11,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161104220542) do
+ActiveRecord::Schema.define(version: 20161119082447) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+  enable_extension "adminpack"
 
   create_table "users", force: :cascade do |t|
     t.string   "fname"
@@ -28,6 +29,7 @@ ActiveRecord::Schema.define(version: 20161104220542) do
     t.integer  "max",             limit: 8
     t.boolean  "admin"
     t.integer  "toys",            limit: 8
+    t.integer  "timeleft"
   end
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree

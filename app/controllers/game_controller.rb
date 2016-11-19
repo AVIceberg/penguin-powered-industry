@@ -5,6 +5,7 @@ class GameController < ApplicationController
       @user = User.find_by_id(session[:id])
       gon.strNickname = @user.nickname
       gon.iToys = @user.toys
+      gon.strTimeLeft = @user.timeleft
     else
       redirect_to url_for(:controller => :welcome, :action => :index), :notice => "Please log in or sign up for an account."
     end
