@@ -1,8 +1,7 @@
 // Place all the behaviors and hooks related to the matching controller here.
 // All this logic will automatically be available in application.js.
 
-function init(){
-window.onload=function(){ initialize(); creatjsint();};
+window.onload=function(){ creatjsinit(); initialize(); };
 
 var pressobject;
 var stage;
@@ -17,9 +16,8 @@ $(document).ready(function(){
   }, "jsonp");
 
 });
-}
-function creatjsinit(){
 
+function creatjsinit(){
   stage = new createjs.Stage("demoCanvas");
   circle = new createjs.Shape();
   container = new createjs.Container();
@@ -29,23 +27,18 @@ function creatjsinit(){
   image.crossOrigin = "Anonymous";
   image.src = link;
 
-  image.onload = function(){handleImageLoad(event,image);
-
-  };
+  image.onload = function(){handleImageLoad(event,image);};
 
   //container.setChildIndex(circle,1);
   //container.setChildIndex(image,0);
 
-
 /*
-
   createjs.Tween.get(circle, { loop: true })
   .to({ x: 400 }, 1000, createjs.Ease.getPowInOut(4))
   .to({ alpha: 0, y: 175 }, 500, createjs.Ease.getPowInOut(2))
   .to({ alpha: 0, y: 225 }, 100)
   .to({ alpha: 1, y: 200 }, 500, createjs.Ease.getPowInOut(2))
   .to({ x: 100 }, 800, createjs.Ease.getPowInOut(2));
-
 */
 
   //createjs.Ticker.setFPS(60);
@@ -59,18 +52,11 @@ function creatjsinit(){
 //$(document).ready(function(){$.get("http://ipinfo.io", function (response) { $("#map").html("<img src='https://maps.googleapis.com/maps/api/staticmap?size=600x300&sensor=false&zoom=10&center=" + response.loc +"'/>"); }, "jsonp");});
 }
 
-
-
-
-
 function tick() {
     stage.update();
 }
 
 function handleImageLoad(event,image) {
-
-
-
             container.x=(800-640/1.25)/2;
             var bitmap = new createjs.Bitmap(image);
             var buildscon=createbuild(image);
@@ -87,8 +73,6 @@ function handleImageLoad(event,image) {
             bitmap.addEventListener("rollover",function(){
                         console.log(4);
                       });
-
-
 
             //bitmap2.x=200;
             //bitmap2.y=200;
@@ -111,8 +95,6 @@ function handleImageLoad(event,image) {
             stage.addChild(bgShape);
             stage.addChild(buildscon);
 
-
-
             container.setChildIndex(bitmap,0);
             container.setChildIndex(line,1);
             container.setChildIndex(circle,container.getNumChildren()-1);
@@ -125,7 +107,6 @@ function handleImageLoad(event,image) {
             //line.lineTo(100,100);
             //line.endStroke();
 
-
             /*
             stage.addEventListener("stagemousemove",function(){
               bgShape.x=stage.mouseX;
@@ -137,7 +118,6 @@ function handleImageLoad(event,image) {
 
             //stage.update();
 }
-
 
 function createbuild(image){
 
@@ -253,6 +233,8 @@ function drawgridline(ct){
   createjs.Ticker.addEventListener("tick",tick);
 
   return line;
+
+
 }
 
 function grid(i,j,height,width){
@@ -319,6 +301,7 @@ function grid(i,j,height,width){
 
 }
 
+
 function enableDrag(item) {
     console.log(2);
     // OnPress event handler
@@ -326,13 +309,10 @@ function enableDrag(item) {
     item.addEventListener("pressmove",function(evt){
       var offset = {  x:item.x-evt.stageX,
                         y:item.y-evt.stageY};
-
         // Bring to front
         container.addChild(item);
-
         // Mouse Move event handler
         evt.onMouseMove = function(ev) {
-
             item.x = ev.stageX+offset.x;
             item.y = ev.stageY+offset.y;
             stage.update();
@@ -376,12 +356,11 @@ function init2(){
 
   var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser', { preload: preload, create: create, update: update });
 
+}
 
 var renderer;
 var stage;
 var bunny;
-
-}
 
 function pixi1(){
 
@@ -424,6 +403,9 @@ PIXI.loader.add('bunny',bunnyPath).load(function (loader, resources) {
     animate();
 
 });
+
+
+
 }
 function animate() {
     // start the timer for the next animation loop
@@ -461,7 +443,7 @@ function initialize()
     document.getElementById("nickname").innerHTML = gon.strNickname + "'s Workshop";
     document.getElementById("clicking-area").addEventListener("click", incrementToys, false);
     updateToys();
-    var timeinterval = setInterval(updateClock(gon.strTimeLeft), 1000);
+    var timeinterval = setInterval(updateClock(gon.iTimeLeft), 1000);
 
 }
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
@@ -483,17 +465,11 @@ var callSave = function(){
 $.ajax({
   url: "save",
   type: "put",
-  data: {toys: Number(gon.iToys)}
+  data: {toys: Number(gon.iToys), time_left: Number(gon.iTimeLeft)}
 });
 }
 
 $(document).on("click", "#save-button", callSave);
-
-
-
-
-
-
 
 /******CLOCK SCRIPT********/
 
@@ -503,16 +479,14 @@ function updateClock(time_left) {
     if(time_left <= 1) {
       clearInterval(timeinterval);
     }
-/*
-    if(save_interval == interval_wanted) {
-
-         // save it
-
-      save_interval = 0;
+    // Automatic Save
+    // Automatic Save
+    if((time_left % 2 == 0) && (time_left % 60 == 0)) {
+      callSave();
     }
-    save_interval = save_interval + 1;
-*/
+
     time_left = time_left - 1;
+    gon.iTimeLeft = time_left;
     document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
     document.getElementById("seconds").innerHTML = time_left % 60;
   }
