@@ -1,10 +1,20 @@
 // Place all the behaviors and hooks related to the matching controller here.
 // All this logic will automatically be available in application.js.
 
-window.onload=function(){ creatjsinit(); initialize(); };
+window.onload=function(){ createjsinit(); initialize(); };
 
+// P == Plains, W == Water
+var mapData = [["P", "P", "P", "P", "P", "P", "P", "P"],
+               ["P", "P", "P", "P", "P", "P", "P", "P"],
+               ["P", "P", "P", "P", "P", "P", "P", "P"],
+               ["P", "P", "P", "P", "P", "P", "P", "P"],
+               ["P", "P", "P", "W", "P", "P", "P", "P"],
+               ["P", "P", "P", "W", "P", "P", "P", "P"],
+               ["P", "P", "P", "W", "W", "W", "W", "W"],
+               ["P", "P", "W", "W", "P", "P", "P", "P"]];
 var pressobject;
 var stage;
+var stageCanvas;
 var link;
 var container;
 var circle;
@@ -14,11 +24,33 @@ $(document).ready(function(){
   $.get("http://ipinfo.io", function (response) {
     link = "https://maps.googleapis.com/maps/api/staticmap?size=640x640&sensor=false&zoom=10&key=AIzaSyDuUn1x0ZoXHX-CorcQkOO1nTTi3_nthNI&center=" + response.loc ;
   }, "jsonp");
-
 });
 
-function creatjsinit(){
+function createjsinit(){
   stage = new createjs.Stage("demoCanvas");
+  stageCanvas = new createjs.Stage("gamecanvas");
+
+  for (x = 0 ; x < gon.iMapSize ; x = x + 100)
+  {
+    for (y = 0 ; y < gon.iMapSize ; y = y + 100)
+    {
+      square = new createjs.Shape();
+      var strColour = getSquareType(mapData[y / 100][x / 100]); // Read map data to determine what goes here
+      square.graphics.beginStroke("black").beginFill(strColour).drawRect(0, 0, 100, 100); // Draw terrain
+      square.x = x;
+      square.y = y;
+      buildingContainer = grid(x, y, 100, 100);
+      stageCanvas.addChild(buildingContainer);
+      stageCanvas.addChild(square);
+      stageCanvas.update();
+    }
+  }
+
+  circleTest = new createjs.Shape();
+  circleTest.graphics.beginFill("Green").drawCircle(50, 50, 50);
+  stageCanvas.addChild(circleTest);
+  stageCanvas.update();
+
   circle = new createjs.Shape();
   container = new createjs.Container();
 
@@ -52,8 +84,26 @@ function creatjsinit(){
 //$(document).ready(function(){$.get("http://ipinfo.io", function (response) { $("#map").html("<img src='https://maps.googleapis.com/maps/api/staticmap?size=600x300&sensor=false&zoom=10&center=" + response.loc +"'/>"); }, "jsonp");});
 }
 
+// Determines the terrain type of the grid spot and returns its colour.
+function getSquareType(squareData)
+{
+  if (squareData == "P")
+  {
+    return "White";
+  }
+  else if (squareData == "W")
+  {
+    return "#89cff0";
+  }
+  else
+  {
+      return "Green";
+  }
+}
+
 function tick() {
     stage.update();
+    stageCanvas.update();
 }
 
 function handleImageLoad(event,image) {
@@ -68,24 +118,16 @@ function handleImageLoad(event,image) {
             circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 50);
             circle.x = 300;
             circle.y = 200;
-            //container.addChild(circle);
 
             bitmap.addEventListener("rollover",function(){
                         console.log(4);
                       });
 
-            //bitmap2.x=200;
-            //bitmap2.y=200;
             stage.addChild(container);
 
             enableDrag(circle);
 
-            //container.addChild(bitmap2);
-
             stage.enableMouseOver();
-            //stage.cursor = "none";
-
-            //stage.canvas.style.cursor = 'none';
 
             var bgShape = new createjs.Shape();
             bgShape.graphics.beginFill("red").drawRect(0, 0, 30, 30);
@@ -98,25 +140,6 @@ function handleImageLoad(event,image) {
             container.setChildIndex(bitmap,0);
             container.setChildIndex(line,1);
             container.setChildIndex(circle,container.getNumChildren()-1);
-
-            //container.removeChild(image2.parent);
-
-            //var line = new createjs.Graphics();
-            //line.beginStroke('cyan');
-            //line.moveTo(50,50);
-            //line.lineTo(100,100);
-            //line.endStroke();
-
-            /*
-            stage.addEventListener("stagemousemove",function(){
-              bgShape.x=stage.mouseX;
-              bgShape.y=stage.mouseY;
-            });
-            container.addEventListener("click",function(){
-              console.log(4);
-            });*/
-
-            //stage.update();
 }
 
 function createbuild(image){
@@ -140,12 +163,10 @@ function createbuild(image){
 
         var bitm=new createjs.Bitmap(tempimg);
         console.log(tempimg);
-        //bitm.x=xlen;
 
         for(var i=0;i<buildingData[x];i++){
           var tempbit=bitm.clone();
           tempbit.x=xlen;
-          //console.log(tempbit.getBounds());
           bdcon.addChild(tempbit);
           enableDrag(tempbit);
           if(i!=buildingData[x]-1){
@@ -153,26 +174,12 @@ function createbuild(image){
             xlen+=tempbit.getBounds().width*1.5;
           }
         }
-
       };
-
-
-
       xlen+=tempimg.width*1.5;
       console.log(x);
     }
 
   }
-/*
-  var homepath = $("#home2").data("pathToAsset");
-  console.log(homepath);
-  var image2 = new Image();
-  image2.src = homepath;
-  var bitmap2 = new createjs.Bitmap(image2);
-  bdcon.addChild(bitmap2);
-  console.log(image2.width);
-  enableDrag(bitmap2);
-*/
   return bdcon;
 }
 
@@ -460,6 +467,7 @@ function updateToys()
 {
   document.getElementById("toys").innerHTML = gon.iToys + " toys";
 }
+
 var callSave = function(){
 $.ajax({
   url: "save",
@@ -486,11 +494,10 @@ function updateClock(time_left) {
     if(time_left <= 1) {
       clearInterval(timeinterval);
       if(gon.iRequiredToys < gon.iToys)
-        resetGame(true);
-      else {
-        resetGame(false);
+        window["resetGame"](true);
+      else
+        window["resetGame"](false);
       }
-    }
     // Automatic Save
     if((time_left % gon.iSaveInterval == 0) && (time_left % 60 == 0)) {
       callSave();

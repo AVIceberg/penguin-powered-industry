@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   put '/save', to: 'game#save'
   put '/reset', to: 'game#reset'
 
+
   resources :application do
     member do
       delete 'logout'
