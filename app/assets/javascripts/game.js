@@ -1,9 +1,8 @@
 // Place all the behaviors and hooks related to the matching controller here.
 // All this logic will automatically be available in application.js.
 
-window.onload=function(){ initialize();};
 function init(){
-window.onload=function(){ creatjsinit(); };
+window.onload=function(){ initialize(); creatjsint();};
 
 var pressobject;
 var stage;
@@ -18,29 +17,22 @@ $(document).ready(function(){
   }, "jsonp");
 
 });
+}
 function creatjsinit(){
 
   stage = new createjs.Stage("demoCanvas");
   circle = new createjs.Shape();
   container = new createjs.Container();
 
-
-
-
-
   console.log(link);
   var image = new Image();
   image.crossOrigin = "Anonymous";
   image.src = link;
 
-
-
-
-
   image.onload = function(){handleImageLoad(event,image);
 
   };
-  
+
   //container.setChildIndex(circle,1);
   //container.setChildIndex(image,0);
 
@@ -52,7 +44,9 @@ function creatjsinit(){
   .to({ alpha: 0, y: 175 }, 500, createjs.Ease.getPowInOut(2))
   .to({ alpha: 0, y: 225 }, 100)
   .to({ alpha: 1, y: 200 }, 500, createjs.Ease.getPowInOut(2))
-  .to({ x: 100 }, 800, createjs.Ease.getPowInOut(2));*/
+  .to({ x: 100 }, 800, createjs.Ease.getPowInOut(2));
+
+*/
 
   //createjs.Ticker.setFPS(60);
   //createjs.Ticker.addEventListener("tick", stage);
@@ -63,8 +57,6 @@ function creatjsinit(){
 
 
 //$(document).ready(function(){$.get("http://ipinfo.io", function (response) { $("#map").html("<img src='https://maps.googleapis.com/maps/api/staticmap?size=600x300&sensor=false&zoom=10&center=" + response.loc +"'/>"); }, "jsonp");});
-
-
 }
 
 
@@ -202,9 +194,6 @@ function createbuild(image){
   enableDrag(bitmap2);
 */
   return bdcon;
-
-
-
 }
 
 
@@ -264,8 +253,6 @@ function drawgridline(ct){
   createjs.Ticker.addEventListener("tick",tick);
 
   return line;
-
-
 }
 
 function grid(i,j,height,width){
@@ -332,7 +319,6 @@ function grid(i,j,height,width){
 
 }
 
-
 function enableDrag(item) {
     console.log(2);
     // OnPress event handler
@@ -383,28 +369,20 @@ function enableDrag(item) {
         mapsave.push({i:ccon[0].i,j:ccon[0].j});
         createjs.Tween.get(ccon[0],{loop:true}).to({alpha:0.5},800,createjs.Ease.getPowInOut(2));
       }
-
-
-      //
-
-
-
-
     });
-
-
-
-
 }
 
 function init2(){
 
   var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser', { preload: preload, create: create, update: update });
 
-}
+
 var renderer;
 var stage;
 var bunny;
+
+}
+
 function pixi1(){
 
   // You can use either `new PIXI.WebGLRenderer`, `new PIXI.CanvasRenderer`, or `PIXI.autoDetectRenderer`
@@ -446,9 +424,6 @@ PIXI.loader.add('bunny',bunnyPath).load(function (loader, resources) {
     animate();
 
 });
-
-
-
 }
 function animate() {
     // start the timer for the next animation loop
@@ -520,9 +495,9 @@ $(document).on("click", "#save-button", callSave);
 
 
 
-/******CLOCK SCRIPT********/        
+/******CLOCK SCRIPT********/
 
-//var save_interval = 0;   
+//var save_interval = 0;
 function updateClock(time_left) {
   function updateClock2() {
     if(time_left <= 1) {
