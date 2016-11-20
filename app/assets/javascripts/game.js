@@ -450,9 +450,8 @@ function initialize()
 function incrementToys()
 {
   var iBase = 1;
-  var fMultiplier = 1; // Placeholder
 
-  gon.iToys = gon.iToys + iBase * fMultiplier;
+  gon.iToys = gon.iToys + iBase * gon.fClickMultiplier;
   updateToys();
 }
 
@@ -469,6 +468,14 @@ $.ajax({
 });
 }
 
+var resetGame = function(gainedLevel){
+  $.ajax({
+    url: "reset",
+    type: "put",
+    data: {maxToys: Number(gon.iToys), leveledUp: Boolean(gainedLevel)}
+  });
+}
+
 $(document).on("click", "#save-button", callSave);
 
 /******CLOCK SCRIPT********/
@@ -478,10 +485,14 @@ function updateClock(time_left) {
   function updateClock2() {
     if(time_left <= 1) {
       clearInterval(timeinterval);
+      if(gon.iRequiredToys < gon.iToys)
+        resetGame(true);
+      else {
+        resetGame(false);
+      }
     }
     // Automatic Save
-    // Automatic Save
-    if((time_left % 2 == 0) && (time_left % 60 == 0)) {
+    if((time_left % gon.iSaveInterval == 0) && (time_left % 60 == 0)) {
       callSave();
     }
 

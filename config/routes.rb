@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   get '/about', to: 'welcome#about'
   get '/game', to: 'game#gamepage'
   put '/save', to: 'game#save'
+  put '/reset', to: 'game#reset'
 
   resources :application do
     member do
