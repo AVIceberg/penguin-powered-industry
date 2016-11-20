@@ -51,7 +51,7 @@ end
 
 class UsersControllerTest1 < ActionDispatch::IntegrationTest
 
-  test "Valid signup and Redirect" do
+  test "Valid signup and correct redirection" do
   	get signup_path
   	assert_difference 'User.count', 1 do
   		post users_path,  user: { fname: "tester22", lname: "tester22", nickname: "tester22", email: "tester@testers.com",
@@ -112,11 +112,11 @@ class UsersControllerTest1 < ActionDispatch::IntegrationTest
     post login_path, :nickname => "Kate", :password => "testing"
     follow_redirect!
     assert_template 'users/show'
+    assert session[:id] == users(:Kate).id
     get edit_user_path, id: users(:Alex).id #Not Kate's ID
     assert_response :success
     put user_path, user: { fname: "Alex", lname: "Zheng", nickname: "Alex", email: "a@a.com", id: users(:Alex).id }
     assert_response :redirect
-    #assert User.find_by_id(users(:Alex).id).email == "a@a.com"
   end
 
 end
