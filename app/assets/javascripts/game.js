@@ -381,11 +381,14 @@ function updateClock(time_left) {
   function updateClock2() {
     if(time_left <= 1) {
       clearInterval(timeinterval);
-      if(gon.iRequiredToys < gon.iToys)
-        window["resetGame"](true);
-      else
+      if(gon.iRequiredToys < gon.iToys) {
+        var endDecision = confirm("You have won the game!\nClick OK to proceed to the next level\nAlternatively, you can click Cancel to stay on this level");
+        window["resetGame"](endDecision);
+      }
+      else {
         window["resetGame"](false);
       }
+    }
     //Clear Error innerHTML after 15 seconds
     if(errorClearInterval == 15) {
       clearErrors();
