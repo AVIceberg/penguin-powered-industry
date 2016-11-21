@@ -17,4 +17,12 @@ class GameControllerTest < ActionController::TestCase
     assert_select '#save-button'
   end
 
+  test "Clock-specific HTML exists" do
+    session[:id] = users(:Alex).id
+    get :gamepage
+    assert_select 'div.timer'
+    assert_select 'span#minutes'
+    assert_select 'span#seconds'
+  end
+
 end
