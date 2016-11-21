@@ -376,6 +376,7 @@ $(document).on("click", "#save-button", callSave);
 /******CLOCK SCRIPT********/
 
 var errorClearInterval = 0;               //initialization
+var eventClearInterval = 0;               //initialization
 function updateClock(time_left) {
   function updateClock2() {
     if(time_left <= 1) {
@@ -390,15 +391,13 @@ function updateClock(time_left) {
       clearErrors();
       errorClearInterval = 0;
     }
+    if(eventClearInterval == 300) {
+      clearEvents();
+    }
     // Events
-    if(time_left == 2100) {         //35 minutes left
-      //firstEvent();
-    }
-    if(time_left == 1500) {         //25 minutes left
-      //secondEvent();
-    }
-    if(time_left == 600) {          //10 minutes left
-      //thirdEvent();
+    if(time_left == 2100 || time_left == 1500 || time_left == 900 || time_left == 540) {         //35 mins, 25 mins, 15 mins, 9 mins
+      eventChooser(randomIntFromInterval(1, 3));
+      eventClearInterval = 0;
     }
     // Automatic Save
     if((time_left % gon.iSaveInterval == 0) && (time_left % 60 == 0)) {
@@ -418,3 +417,44 @@ function updateClock(time_left) {
 function clearErrors() {
   document.getElementById("error").innerHTML = "";
 }
+function clearEvents() {
+  document.getElementById("events").innerHTML = "";
+}
+
+
+/*******EVENTS*********/
+function randomIntFromInterval(min,max) {                                //imported code!
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+function eventChooser(integer) {
+    switch(integer) {
+      case 1: 
+        firstEvent();
+        break;
+      case 2: 
+        secondEvent();
+        break;
+      case 3: 
+        thirdEvent();
+        break;
+    }
+}
+function firstEvent() {
+  document.getElementById("events").innerHTML = firstEventText;
+  //do something
+}
+function secondEvent() {
+  document.getElementById("events").innerHTML = secondEventText;
+  //do something
+}
+function thirdEvent() {
+  document.getElementById("events").innerHTML = thirdEventText;
+  //do something
+}
+
+
+/******EVENT TEXT********/
+
+var firstEventText = "Some flavour text about the first type of event";
+var secondEventText = "Some flavour text about the second type of event";
+var thirdEventText = "Some flavour text about the third type of event";
