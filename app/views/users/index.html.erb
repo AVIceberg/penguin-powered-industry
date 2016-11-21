@@ -16,7 +16,7 @@
   </thead>
 
   <tbody>
-    <% @users.each do |user| %>
+    <% @users.sort_by{|user| user.level}.reverse.each do |user| %>
     <tr>
       <td><%= link_to user.nickname, user %></td>
       <td><%= user.level %></td>
