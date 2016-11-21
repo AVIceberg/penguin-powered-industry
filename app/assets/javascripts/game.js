@@ -181,8 +181,9 @@ function purchaseBuilding(event)
         updateToys();
       }
       else
-        alert("At least 100 toys is required to buy a Labour Camp!");
+        document.getElementById("error").innerHTML = "At least 100 toys are required to buy a Labour Camp!";
         colour = "Invalid";
+        errorClearInterval = 0;
       break;
     case "Toy Mine":
       colour = "Grey";
@@ -374,7 +375,7 @@ $(document).on("click", "#save-button", callSave);
 
 /******CLOCK SCRIPT********/
 
-//var save_interval = 0;
+var errorClearInterval = 0;               //initialization
 function updateClock(time_left) {
   function updateClock2() {
     if(time_left <= 1) {
@@ -384,6 +385,11 @@ function updateClock(time_left) {
       else
         window["resetGame"](false);
       }
+    //Clear Error innerHTML after 15 seconds
+    if(errorClearInterval == 15) {
+      clearErrors();
+      errorClearInterval = 0;
+    }
     // Events
     if(time_left == 2100) {         //35 minutes left
       //firstEvent();
@@ -398,7 +404,7 @@ function updateClock(time_left) {
     if((time_left % gon.iSaveInterval == 0) && (time_left % 60 == 0)) {
       callSave();
     }
-
+    errorClearInterval = errorClearInterval + 1;
     time_left = time_left - 1;
     gon.iToys += gon.iPassiveIncome;
     updateToys();
@@ -407,4 +413,8 @@ function updateClock(time_left) {
     document.getElementById("seconds").innerHTML = time_left % 60;
   }
   var timeinterval = setInterval(updateClock2, 1000);
+}
+
+function clearErrors() {
+  document.getElementById("error").innerHTML = "";
 }
