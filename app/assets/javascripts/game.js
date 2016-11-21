@@ -181,12 +181,17 @@ function purchaseBuilding(event)
         updateToys();
       }
       else
+      {
         document.getElementById("error").innerHTML = "At least 100 toys are required to buy a Labour Camp!";
         colour = "Invalid";
         errorClearInterval = 0;
+      }
       break;
     case "Toy Mine":
       colour = "Grey";
+      break;
+    default:
+      colour = "Invalid";
       break;
   }
 
@@ -431,13 +436,13 @@ function randomIntFromInterval(min,max) {                                //impor
 }
 function eventChooser(integer) {
     switch(integer) {
-      case 1: 
+      case 1:
         firstEvent();
         break;
-      case 2: 
+      case 2:
         secondEvent();
         break;
-      case 3: 
+      case 3:
         thirdEvent();
         break;
     }
