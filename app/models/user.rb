@@ -1,5 +1,7 @@
 class User < ActiveRecord::Base
+  has_many :buildings, dependent: :destroy
 
+  
   def password=(password)
     self.password_digest = BCrypt::Password.create(password)
   end
@@ -31,7 +33,7 @@ class User < ActiveRecord::Base
   validates :level,
    numericality: { only_integer: true, greater_than: 0}
 
-  validates :max, 
+  validates :max,
     numericality: { greater_than_or_equal_to: 0}
 
 end
