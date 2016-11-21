@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161121003305) do
+ActiveRecord::Schema.define(version: 20161121051233) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -107,14 +107,16 @@ ActiveRecord::Schema.define(version: 20161121003305) do
     t.string   "lname"
     t.string   "nickname"
     t.string   "email"
-    t.datetime "created_at",                null: false
-    t.datetime "updated_at",                null: false
+    t.datetime "created_at",                                                                                                                                                                                                                                                                                                                                                                           null: false
+    t.datetime "updated_at",                                                                                                                                                                                                                                                                                                                                                                           null: false
     t.string   "password_digest"
     t.integer  "level"
     t.integer  "max",             limit: 8
     t.boolean  "admin"
     t.integer  "toys",            limit: 8
     t.integer  "timeleft"
+    t.string   "map",                       default: [["P", "P", "P", "P", "P", "P", "P", "P"], ["P", "P", "P", "P", "P", "P", "P", "P"], ["P", "P", "P", "P", "P", "P", "P", "P"], ["P", "P", "P", "P", "P", "P", "P", "P"], ["P", "P", "P", "W", "P", "P", "P", "P"], ["P", "P", "P", "W", "P", "P", "P", "P"], ["P", "P", "P", "W", "W", "W", "W", "W"], ["P", "P", "W", "W", "P", "P", "P", "P"]],              array: true
+    t.string   "building_map",              default: [["0", "0", "0", "0", "0", "0", "0", "0"], ["0", "0", "0", "0", "0", "0", "0", "0"], ["0", "0", "0", "0", "0", "0", "0", "0"], ["0", "0", "0", "0", "0", "0", "0", "0"], ["0", "0", "0", "0", "0", "0", "0", "0"], ["0", "0", "0", "0", "0", "0", "0", "0"], ["0", "0", "0", "0", "0", "0", "0", "0"], ["0", "0", "0", "0", "0", "0", "0", "0"]],              array: true
   end
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree

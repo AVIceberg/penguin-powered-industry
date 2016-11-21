@@ -1,18 +1,8 @@
 // Place all the behaviors and hooks related to the matching controller here.
 // All this logic will automatically be available in application.js.
 
+// Initializes game logic and the map
 window.onload=function(){ createjsinit(); initialize(); };
-
-// P == Plains, W == Water; Initial map data
-// To-Do: Randomly generated for every new game
-var mapData = [["P", "P", "P", "P", "P", "P", "P", "P"],
-               ["P", "P", "P", "P", "P", "P", "P", "P"],
-               ["P", "P", "P", "P", "P", "P", "P", "P"],
-               ["P", "P", "P", "P", "P", "P", "P", "P"],
-               ["P", "P", "P", "W", "P", "P", "P", "P"],
-               ["P", "P", "P", "W", "P", "P", "P", "P"],
-               ["P", "P", "P", "W", "W", "W", "W", "W"],
-               ["P", "P", "W", "W", "P", "P", "P", "P"]];
 
 var pressobject; // Tracks the building currently being placed
 var stage;
@@ -26,22 +16,15 @@ var temporaryCursor;
 var buildingPen;
 var buildingPenHelper = [0, 0, 0, 0, 0, 0, 0, 0];
 
-$(document).ready(function(){
-  $.get("http://ipinfo.io", function (response) {
-    link = "https://maps.googleapis.com/maps/api/staticmap?size=640x640&sensor=false&zoom=10&key=AIzaSyDuUn1x0ZoXHX-CorcQkOO1nTTi3_nthNI&center=" + response.loc ;
-  }, "jsonp");
-});
-
 function createjsinit(){
   stage = new createjs.Stage("demoCanvas");
   stageCanvas = new createjs.Stage("gamecanvas");
-
   // Draws the grid-based map and populates each square with a container
   for (x = 0 ; x < gon.iMapSize ; x = x + 100)
   {
     for (y = 0 ; y < gon.iMapSize ; y = y + 100)
     {
-      var strType = getTerrainType(mapData[y / 100][x / 100]); // Read map data to determine what goes here
+      var strType = getTerrainType(gon.strMapSave[y / 100][x / 100]); // Read map data to determine what goes here
       var gridSquare = getGridSquare(x, y, 100, 100, strType); // Fetches a container for the square
 
       // Adds the grid tile to the canvas
@@ -56,9 +39,48 @@ function createjsinit(){
   stageCanvas.addChild(buildingPen);
   stageCanvas.update();
 
+  // Load buildings
+  loadAllBuildings();
+
   // Sets up ticker
   createjs.Ticker.setFPS(40);
   createjs.Ticker.addEventListener("tick",tick);
+}
+
+function loadAllBuildings()
+{
+  // Searches through to find any existant buildings and places them as appropriate
+  for (x = 0 ; x < gon.iMapSize ; x = x + 100)
+  {
+    for (y = 0 ; y < gon.iMapSize ; y = y + 100)
+    {
+      var strType = (gon.strBuildingMapSave[x / 100][y / 100]); // Read map data to determine what goes here
+      if (strType != "0")
+      {
+        var colour = "Green";
+        if (strType == "Labour Camp")
+        {
+          colour = "Brown";
+        }
+        else if (strType == "Toy Mine")
+        {
+          colour = "Grey";
+        }
+
+        pressobject = new createjs.Shape();
+        pressobject.graphics.beginStroke("black").beginFill("Brown")
+        .drawCircle(50, 50, 50);
+        pressobject.type = strType;
+        pressobject.placement = 0;
+        buildingEventSetup(pressobject);
+
+        gridSquare = stageCanvas.getObjectUnderPoint(x, y, 0);
+        gridSquare.dispatchEvent("click")
+      }
+    //  stageCanvas.addChild(gridSquare);
+    //  stageCanvas.update();
+    }
+  }
 }
 
 // Determines the terrain type of the grid spot and returns its colour.
@@ -152,16 +174,16 @@ function purchaseBuilding(event)
   switch(event.target.strBuildingType)
   {
     case "Labour Camp":
-      if (gon.iToys >= 100)
+      if (gon.iToys >= 0)
       {
         colour = "Brown";
-        gon.iToys = gon.iToys - 100;
+        //gon.iToys = gon.iToys - 100;
         updateToys();
       }
       else
         colour = "Invalid";
       break;
-    case "Toy-Mine":
+    case "Toy Mine":
       colour = "Grey";
       break;
   }
@@ -182,7 +204,6 @@ function purchaseBuilding(event)
   buildingPen.currentCapacity += 1;
   return;
 }
-
 
 // Builds a grid tile for use in the map
 function getGridSquare(x, y, width, height, strType)
@@ -219,15 +240,23 @@ function getGridSquare(x, y, width, height, strType)
     gridSquare.removeChild(visualEffect);
   });
 
-  // Handles cases wherein buildings are being placed on the map
+  // Handles cases wherein buildings are bei ng placed on the map
   gridSquare.on("click", function(event) {
     if (pressobject != null) {
-
       if (gridSquare.terrainType != "Water") // To-do: Expand for different types, make building specific
       {
         pressobject = drawBuildingForMapPlacement(pressobject);
         gridSquare.addChild(pressobject.clone());
         buildingPenHelper[pressobject.placement] = 0;
+        gon.strBuildingMapSave[gridSquare.x / 100][gridSquare.y / 100] = pressobject.type;
+        switch(pressobject.type)
+          {
+          case 'Labour Camp':
+            gon.iPassiveIncome = gon.iPassiveIncome + 5;
+            break;
+          case 'Toy Mine':
+            gon.iPassiveIncome = gon.iPassiveIncome + 10;
+          }
         pressobject = null;
         buildingPen.currentCapacity--;
         return;
@@ -326,7 +355,8 @@ var callSave = function(){
 $.ajax({
   url: "save",
   type: "put",
-  data: {toys: Number(gon.iToys), time_left: Number(gon.iTimeLeft)}
+  data: {toys: Number(gon.iToys), time_left: Number(gon.iTimeLeft), map: JSON.stringify(gon.strMapSave),
+     building_map: JSON.stringify(gon.strBuildingMapSave)}
 });
 }
 
@@ -359,6 +389,8 @@ function updateClock(time_left) {
     }
 
     time_left = time_left - 1;
+    gon.iToys += gon.iPassiveIncome;
+    updateToys();
     gon.iTimeLeft = time_left;
     document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
     document.getElementById("seconds").innerHTML = time_left % 60;

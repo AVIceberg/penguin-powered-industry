@@ -10,6 +10,24 @@ class GameController < ApplicationController
       gon.fClickMultiplier = 1.0
       gon.iRequiredToys = 5 * @user.level
       gon.iMapSize = 800
+      gon.iPassiveIncome = 0
+
+      @map = Array.new(8){Array.new(8)}
+      8.times do |i|
+        8.times do |j|
+          @map[i][j] = @user.map[i][j]
+        end
+      end
+
+      @buildingMap = Array.new(8){Array.new(8)}
+      8.times do |i|
+        8.times do |j|
+          @buildingMap[i][j] = @user.building_map[i][j]
+        end
+      end
+      gon.strMapSave = @map
+      gon.strBuildingMapSave = @buildingMap
+
     else
       redirect_to url_for(:controller => :welcome, :action => :index), :notice => "Please log in or sign up for an account."
     end
@@ -20,6 +38,8 @@ class GameController < ApplicationController
     if @user
       @user.toys = params[:toys]
       @user.timeleft = params[:time_left]
+      @user.map = JSON.parse(params[:map])
+      @user.building_map = JSON.parse(params[:building_map])
       @user.save
     end
     render js: ''
