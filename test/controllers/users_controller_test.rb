@@ -47,6 +47,21 @@ class UsersControllerTest < ActionController::TestCase
     assert_select 'tr', User.all.count + 1
   end
 
+  test "Players sorted by level" do
+  session[:previousVal];
+  users(:Kate).level = 2
+  users(:Alex).level = 1
+  users(:Bob).level = 3
+  get :index
+  assert_select "td#0" do |first|
+    session[:previousVal] = first.inner_html.to_i
+  end
+  assert_select "td.level_data" do |data|
+    assert (data.inner_html.to_i >= session[:previousVal])
+    session[:previousVal] = data.inner_html.to_i
+  end
+end
+
 end
 
 class UsersControllerTest1 < ActionDispatch::IntegrationTest

@@ -16,10 +16,11 @@
   </thead>
 
   <tbody>
-    <% @users.sort_by{|user| user.level}.reverse.each do |user| %>
+    <% iteration = 0 %>
+    <% @users.sort_by{|user|[user.level, user.max]}.reverse.each do |user| %>
     <tr>
       <td><%= link_to user.nickname, user %></td>
-      <td><%= user.level %></td>
+      <td class="level_data" id= <%= iteration %>><%= user.level %></td>
       <% if user_is_logged_in? %>
         <% if user_is_admin? %>
           <td class="option"><%= link_to "Edit User", edit_user_path(user) %></td>

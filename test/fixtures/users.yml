@@ -33,3 +33,14 @@ Alex:
   max: 0
   admin: false
   password_digest: <%= BCrypt::Password.create('testing') %>
+
+Bob:
+  fname: Bob
+  lname: Bobbington
+  nickname: Bob
+  email: Bob@Bob.org
+  id: 2
+  level: 1
+  max: 0
+  admin: false
+  password_digest: <%= BCrypt::Password.create('testing') %>
