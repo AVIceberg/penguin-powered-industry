@@ -174,13 +174,14 @@ function purchaseBuilding(event)
   switch(event.target.strBuildingType)
   {
     case "Labour Camp":
-      if (gon.iToys >= 0)
+      if (gon.iToys >= 100)
       {
         colour = "Brown";
-        //gon.iToys = gon.iToys - 100;
+        gon.iToys = gon.iToys - 100;
         updateToys();
       }
       else
+        alert("At least 100 toys is required to buy a Labour Camp!");
         colour = "Invalid";
       break;
     case "Toy Mine":
@@ -383,6 +384,16 @@ function updateClock(time_left) {
       else
         window["resetGame"](false);
       }
+    // Events
+    if(time_left == 2100) {         //35 minutes left
+      //firstEvent();
+    }
+    if(time_left == 1500) {         //25 minutes left
+      //secondEvent();
+    }
+    if(time_left == 600) {          //10 minutes left
+      //thirdEvent();
+    }
     // Automatic Save
     if((time_left % gon.iSaveInterval == 0) && (time_left % 60 == 0)) {
       callSave();
