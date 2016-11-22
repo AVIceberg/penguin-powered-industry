@@ -250,8 +250,9 @@ function getGridSquare(x, y, width, height, strType)
   // Handles cases wherein buildings are bei ng placed on the map
   gridSquare.on("click", function(event) {
     if (pressobject != null) {
-      if (gridSquare.terrainType != "Water") // To-do: Expand for different types, make building specific
+      if (gridSquare.terrainType != "Water" && gridSquare.isBuilding == false) // To-do: Expand for different types, make building specific
       {
+        gridSquare.isBuilding = true;
         pressobject = drawBuildingForMapPlacement(pressobject);
         gridSquare.addChild(pressobject.clone());
         buildingPenHelper[pressobject.placement] = 0;
@@ -272,6 +273,7 @@ function getGridSquare(x, y, width, height, strType)
     // Return the building to the pen
     building = pressobject.clone(true);
     building.type = pressobject.type;
+    building.placement = pressobject.placement;
     buildingEventSetup(building);
     buildingPen.addChild(building);
     pressobject = null;
