@@ -6,15 +6,21 @@ window.onload=function(){ createjsinit(); initialize(); };
 
 var pressobject; // Tracks the building currently being placed
 var stage;
+var mouse = {x : -100, y : -100, press : false};
+var gridondrag = [];
+var mouseoffset = [0, 0];
 var stageCanvas; // The primary canvas (Map)
 var link;
 var container;
 var circle;
 var mapsave=[];
-var buildingData={"home2":4};
+var buildingData=[{name:"home2",number:4,x:2,y:3}];
 var temporaryCursor;
 var buildingPen;
+var objectonpress;
 var buildingPenHelper = [0, 0, 0, 0, 0, 0, 0, 0];
+
+
 
 function createjsinit(){
   stage = new createjs.Stage("demoCanvas");
@@ -41,11 +47,118 @@ function createjsinit(){
 
   // Load buildings
   loadAllBuildings();
+  
+  mousemove(stageCanvas);
 
   // Sets up ticker
   createjs.Ticker.setFPS(40);
   createjs.Ticker.addEventListener("tick",tick);
 }
+
+
+function mousemove(stg){
+  
+  
+  
+  
+  
+  stg.on("stagemousemove", function(evt) {
+    
+    if (pressobject != null){
+        
+      
+      
+      
+        
+      var coordinates = pressobject.coordinates;
+        
+      pressobject.x = evt.stageX-coordinates.x;
+      pressobject.y = evt.stageY-coordinates.y;
+      
+      var left = evt.stageX - coordinates.tilewidth*100/2;
+      var right = evt.stageX + coordinates.tilewidth*100/2;
+      var up = evt.stageY - coordinates.tileheight*100/2;
+      var down = evt.stageY + coordinates.tileheight*100/2;
+      
+      if (left <= gon.iMapSize && right >= 0 && up <= gon.iMapSize && down >= 0){
+        
+        var mouseX = Math.floor(evt.stageX/100);
+        var mouseY = Math.floor(evt.stageY/100);
+        
+        if (mouseX != coordinates.gridX || mouseY != coordinates.gridY){
+          
+          
+          
+          coordinates.gridX = mouseX;
+          coordinates.gridY = mouseY;
+          
+          if (gridondrag.length > 0){
+            
+            for (var k in gridondrag){
+            
+              gridondrag[k].removeChildAt(gridondrag[k].numChildren - 1);
+            
+            }
+          
+            gridondrag = [];
+            
+          }
+          
+          if (left < 0){
+            left = 0;
+          }
+          if (right > gon.iMapSize){
+            right = gon.iMapSize;
+          }
+          if (up < 0){
+            up = 0;
+          }
+          if (down > gon.iMapSize){
+            down = gon.iMapSize;
+          }
+          
+          var visualEffectProhibit = new createjs.Shape();
+          visualEffectProhibit.graphics.beginFill("yellow").drawRect(0, 0, 100, 100);// Yellow means player cannot place at this grid.
+          visualEffectProhibit.alpha = 0.20;
+          
+          var visualEffect = new createjs.Shape();
+              
+          visualEffect.graphics.beginFill("#5FFF5f").drawRect(0, 0, 100, 100);
+          visualEffect.alpha = 0.10;
+          
+          
+          
+          for (var i = left; i < right; i += 100){
+        
+            for (var j = up; j < down; j += 100){
+              
+          
+              var gridcontainer = stageCanvas.getChildByName("" + Math.floor(i/100) + Math.floor(j/100));
+              
+              
+              
+              
+              if (gridcontainer.terrainType == "Plains" && gridcontainer.isBuilding == false){
+                gridcontainer.addChild(visualEffect.clone());
+              }
+              else{
+                gridcontainer.addChild(visualEffectProhibit.clone());
+              }
+              
+              gridondrag.push(gridcontainer);
+          
+            }
+          }
+        }
+      }
+        
+    }
+      
+      
+  });
+  
+}
+
 
 function loadAllBuildings()
 {
@@ -123,23 +236,52 @@ function buildingEventSetup(building)
   building.on("click", function(event) {
     if (pressobject == null)
     {
-      coordinates = {  x:event.stageX - event.target.parent.x - event.target.x,
+      coordinates = { x:event.stageX - event.target.parent.x - event.target.x,
                       y:event.stageY - event.target.parent.y - event.target.y,
+                      gridX: -100,
+                      gridY: -100,
+                      tilewidth: event.target.tilewidth,
+                      tileheight: event.target.tileheight,
+                      container: event.target.parent,
                       originX: event.target.x,
                       originY: event.target.y};
-      /*
-      temporaryCursor = new createjs.Shape();
-      temporaryCursor.graphics.beginFill("Green").drawCircle(50, 50, 50);
-      */
+      
+      
       pressobject = event.target.clone(true);
       pressobject.type = event.target.type;
       pressobject.placement = event.target.placement;
+      pressobject.coordinates = coordinates;
+      pressobject.x = event.stageX - coordinates.x;
+      pressobject.y = event.stageY - coordinates.y;
+      
       event.target.parent.removeChild(event.target);
+      
+      
+      
+      
+      stageCanvas.addChild(pressobject);
+      
+      
+      
+      
     }
   });
+  
+  
+  
+  
+  
+  
+  
 }
 
 function tick() {
+  
+    
+  
+    
+    
+  
     stage.update();
     stageCanvas.update();
 }
@@ -209,6 +351,10 @@ function purchaseBuilding(event)
   buildingEventSetup(building);
   buildingPen.addChild(building);
   buildingPen.currentCapacity += 1;
+  
+  building.tilewidth = 2;
+  building.tileheight = 3;
+  
   return;
 }
 
@@ -221,11 +367,16 @@ function getGridSquare(x, y, width, height, strType)
 
   gridSquare.x = x;
   gridSquare.y = y;
+  gridSquare.name = "" + (x/100) + (y/100);
   gridSquare.setBounds(x * width, y * height, width, height);
 
   // Hover-over colour / transparency
   visualEffect.graphics.beginFill("#5FFF5f").drawRect(0, 0, width, height);
   visualEffect.alpha = 0.10;
+  
+  var visualEffectProhibit = new createjs.Shape();
+  visualEffectProhibit.graphics.beginFill("yellow").drawRect(0, 0, width, height);// Yellow means player cannot place at this grid.
+  visualEffectProhibit.alpha = 0.20;
 
   visualTerrain.graphics.beginStroke("black").beginFill(getTerrainColour(strType)).drawRect(0, 0, width, height); // Draw terrain
 
@@ -241,20 +392,45 @@ function getGridSquare(x, y, width, height, strType)
 
   // To-Do: Display info on current building
   gridSquare.on("mouseover", function(event) {
-    gridSquare.addChild(visualEffect);
+    if (strType == "Plains" && gridSquare.isBuilding == false){
+      gridSquare.addChild(visualEffect);
+    }
+    else{
+      gridSquare.addChild(visualEffectProhibit);
+    }
+    
   });
   gridSquare.on("mouseout", function(event) {
-    gridSquare.removeChild(visualEffect);
+    gridSquare.removeChildAt(gridSquare.numChildren - 1);
   });
 
-  // Handles cases wherein buildings are bei ng placed on the map
+  // Handles cases wherein buildings are being placed on the map
   gridSquare.on("click", function(event) {
+    
+    
+    
     if (pressobject != null) {
       if (gridSquare.terrainType != "Water" && gridSquare.isBuilding == false) // To-do: Expand for different types, make building specific
       {
+        
+        if (gridondrag.length > 0){
+            
+            for (var k in gridondrag){
+            
+              gridondrag[k].removeChildAt(gridondrag[k].numChildren - 1);
+            
+            }
+          
+            gridondrag = [];
+            
+        }
+        
         gridSquare.isBuilding = true;
+        stageCanvas.removeChild(pressobject);
         pressobject = drawBuildingForMapPlacement(pressobject);
-        gridSquare.addChild(pressobject.clone());
+        pressobject.x = 0;
+        pressobject.y = 0;
+        gridSquare.addChildAt(pressobject, gridSquare.numChildren - 1);
         buildingPenHelper[pressobject.placement] = 0;
         gon.strBuildingMapSave[gridSquare.x / 100][gridSquare.y / 100] = pressobject.type;
         switch(pressobject.type)
@@ -270,12 +446,32 @@ function getGridSquare(x, y, width, height, strType)
         return;
       }
     }
+    
+    if (gridondrag.length > 0){
+            
+            for (var k in gridondrag){
+            
+              gridondrag[k].removeChildAt(gridondrag[k].numChildren - 1);
+            
+            }
+          
+            gridondrag = [];
+            
+    }
+    
     // Return the building to the pen
-    building = pressobject.clone(true);
+    
+    
+    var building = pressobject.clone(true);
     building.type = pressobject.type;
     building.placement = pressobject.placement;
     buildingEventSetup(building);
+    building.x = pressobject.coordinates.originX;
+    building.y = pressobject.coordinates.originY;
+    building.tileheight = pressobject.coordinates.tileheight;
+    building.tilewidth = pressobject.coordinates.tilewidth;
     buildingPen.addChild(building);
+    pressobject.parent.removeChild(pressobject);
     pressobject = null;
   });
   return gridSquare;
@@ -299,25 +495,7 @@ function drawBuildingForMapPlacement(building)
   return building;
 }
 
-function animate() {
-    // start the timer for the next animation loop
-    requestAnimationFrame(animate);
 
-    // each frame we spin the bunny around a bit
-    bunny.rotation += 0.01;
-
-    // this is the main render call that makes pixi draw your container and its children.
-    renderer.render(stage);
-}
-
-function preload() {
-}
-
-function create() {
-}
-
-function update() {
-}
 
 
 // GAME LOGIC //
