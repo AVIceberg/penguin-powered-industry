@@ -410,7 +410,24 @@ function getGridSquare(x, y, width, height, strType)
     
     
     if (pressobject != null) {
-      if (gridSquare.terrainType != "Water" && gridSquare.isBuilding == false) // To-do: Expand for different types, make building specific
+      
+      
+      
+      var check = true;
+      console.log(3);
+      if (gridondrag.length > 0){
+            console.log(2);
+            for (var k in gridondrag){
+              console.log(1);
+              if (gridondrag[k].terrainType == "Water" || gridondrag[k].isBuilding != false){
+                check = false;
+              }
+            }
+          
+            
+      }
+      
+      if (check == true) // To-do: Expand for different types, make building specific
       {
         
         if (gridondrag.length > 0){
