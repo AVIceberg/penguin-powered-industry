@@ -7,21 +7,26 @@ window.onload=function(){ createjsinit(); initialize(); };
 var pressobject; // Tracks the building currently being placed
 var stageCanvas; // The primary canvas (Map)
 var temporaryCursor;
-var buildingPen;
-var buildingPenHelper = [0, 0, 0, 0, 0, 0, 0, 0];
+var numberOfBuildingTypes = 2;
+var buildingTypes = ["Labour Camp", "Toy Mine"];
+var shop;
 
 function createjsinit(){
   stageCanvas = new createjs.Stage("gamecanvas");
 
-  drawMap();
-  drawClickingArea();
+  // Initialize major map components
+  drawMap(); // Draw map in 'center' of the canvas (offset from y-axis by iMapOffsetX)
+  drawClickingArea(); // Draw clicking area to the left of the map (length iMapOffsetX)
+  drawShop(); // Draw shop to the right of the map (offset from y-axis by iMapOffsetX + iMapSize)
 
   stageCanvas.enableMouseOver(); // Enables mouseover events for the canvas
 
   // Builds building pen
+  /*
   buildingPen = getBuildingPen(gon.iMapOffsetX, gon.iMapSize, gon.iMapSize, gon.iBaseTileLength);
   stageCanvas.addChild(buildingPen);
   stageCanvas.update();
+  */
 
   // Load buildings
   loadAllBuildings();
@@ -62,6 +67,109 @@ function drawClickingArea()
   stageCanvas.addChild(clickingArea);
 }
 
+function drawShop()
+{
+  var upgradeShopWidth = 100;
+  // Entire Shop (container / visuals)
+  shop = new createjs.Container();
+  var visualShop = new createjs.Shape();
+
+  // Building shop (buildings)
+  var buildingShop = new createjs.Container();
+  var visualBuildingShop = new createjs.Shape();
+
+  // Upgrade shop (Upgrades)
+  var upgradeShop = new createjs.Container();
+  var visualUpgradeShop = new createjs.Shape();
+
+  var shopWidth = stageCanvas.canvas.width - gon.iMapSize - gon.iMapOffsetX;
+  var shopHeight = stageCanvas.canvas.height;
+
+  // Instantiate 'general' shop
+      // Instantiate boundaries / positioning
+  shop.x = gon.iMapOffsetX + gon.iMapSize;
+  shop.y = 0;
+  //shop.setBounds(0, 0, shopWidth, shopHeight);
+
+      // Instantiate visual background
+  visualShop.graphics.beginStroke("black").drawRect(0, 0, shopWidth, shopHeight);
+  shop.addChild(visualShop);
+  stageCanvas.addChild(shop);
+
+  // Instantiate building shop
+    // Instantiate boundaries / positioning
+  buildingShop.x = gon.iMapOffsetX + gon.iMapSize + upgradeShopWidth;
+  buildingShop.y = 0;
+  //buildingShop.setBounds(shop.x * (shopWidth - upgradeShopWidth), shop.y * shopHeight,
+   //shopWidth - upgradeShopWidth, shopHeight);
+
+  instantiateBuildingButtons(buildingShop, shopWidth - upgradeShopWidth); // Create shop buttons and attach the relevant events
+
+      // Instantiate visual background
+  visualBuildingShop.graphics.beginStroke("black").drawRect(0, 0, shopWidth - upgradeShopWidth, shopHeight);
+  buildingShop.addChild(visualBuildingShop);
+  stageCanvas.addChild(buildingShop);
+
+  // Instantiate upgrade shop
+  upgradeShop.x = shop.x;
+  upgradeShop.y = 0;
+  //upgradeShop.setBounds(shop.x * upgradeShopWidth, shop.y * shopHeight,
+  // upgradeShopWidth, shopHeight);
+
+  visualUpgradeShop.graphics.beginStroke("black").drawRect(0, 0, upgradeShopWidth, shopHeight);
+  upgradeShop.addChild(visualUpgradeShop);
+  stageCanvas.addChild(upgradeShop);
+
+  // Enables events for children of each container
+  shop.mouseChildren = true;
+  buildingShop.mouseChildren = true;
+  upgradeShop.mouseChildren = true;
+}
+
+function instantiateBuildingButtons(buildingShop, buildingShopWidth)
+{
+  var buildingButtonHeight = stageCanvas.canvas.height / numberOfBuildingTypes;
+  for (iIndex = 0 ; iIndex < numberOfBuildingTypes ; iIndex++)
+  {
+    buildingButton = new createjs.Container(); // Button container
+    buildingButtonVisual = new createjs.Shape(); // Button visual appearance
+
+    // Manage text appearance / placement
+    buildingButtonText = new createjs.Text(buildingTypes[iIndex], "20px Arial", "black");
+    buildingButtonText.textAlign = "center";
+    buildingButtonText.x = buildingShopWidth / 2;
+    buildingButtonText.y = buildingButtonHeight / 2;
+
+    buildingButtonVisual.graphics.beginStroke("black").drawRect(0, 0, buildingShopWidth, buildingButtonHeight);
+
+    // Determine button position within shop
+    buildingButton.y = iIndex * buildingButtonHeight;
+    buildingButton.x = 0;
+
+    buildingButton.strBuildingType = buildingTypes[iIndex];
+    addButtonEvent(buildingButton, iIndex); // Add purchase event to click
+
+    buildingButton.addChild(buildingButtonVisual);
+    buildingButton.addChild(buildingButtonText);
+    buildingShop.addChild(buildingButton);
+  }
+}
+
+function addButtonEvent(buildingButton, iIndex)
+{
+  buildingButton.on("click", function(event)
+{
+  if (pressobject == null)
+  {
+    var building = purchaseBuilding(buildingTypes[iIndex]);
+    if (building != null)
+    {
+      building.dispatchEvent("click");
+    }
+  }
+});
+}
+
 function loadAllBuildings()
 {
   // Searches through to find any existent buildings and places them as appropriate
@@ -86,15 +194,13 @@ function loadAllBuildings()
         pressobject.graphics.beginStroke("black").beginFill(colour)
         .drawCircle(50, 50, 50);
         pressobject.type = strType;
-        pressobject.placement = 0;
         buildingEventSetup(pressobject);
 
         gridSquare = stageCanvas.getObjectUnderPoint(x + gon.iMapOffsetX, y, 0);
-        gridSquare.dispatchEvent("click")
+        gridSquare.dispatchEvent("click");
       }
     }
   }
-  buildingPen.currentCapacity = 0;
 }
 
 // Determines the terrain type of the grid spot and returns its colour.
@@ -167,34 +273,11 @@ function tick() {
     stageCanvas.update();
 }
 
-
-function getBuildingPen(x, y, width, height)
+function purchaseBuilding(strBuildingType)
 {
-  buildingPen = new createjs.Container();
-  var visualPen = new createjs.Shape();
-
-  buildingPen.x = x;
-  buildingPen.y = y;
-  buildingPen.setBounds(x * width, y * height, width, height);
-  buildingPen.capacity = 8;
-  buildingPen.currentCapacity = 0;
-
-  visualPen.graphics.beginStroke("black").drawRect(0, 0, width, height);
-  buildingPen.addChild(visualPen);
-  buildingPen.mouseChildren = true; // Enables events for children of the pen
-  return buildingPen;
-}
-
-function purchaseBuilding(event)
-{
-  // If pen is full, do not buy a new building
-  if (buildingPen.currentCapacity >= 8)
-    return;
-
   var building = new createjs.Shape();
   var colour;
-
-  switch(event.target.strBuildingType)
+  switch(strBuildingType)
   {
     case "Labour Camp":
       if (gon.iToys >= 100)
@@ -211,7 +294,18 @@ function purchaseBuilding(event)
       }
       break;
     case "Toy Mine":
+      if (gon.iToys >= 500)
+      {
       colour = "Grey";
+      gon.iToys = gon.iToys - 500;
+      updateToys();
+      }
+      else
+      {
+          document.getElementById("error").innerHTML = "At least 500 toys are required to buy a Toy Mine!";
+          colour = "Invalid";
+          errorClearINterval = 0;
+      }
       break;
     default:
       colour = "Invalid";
@@ -220,19 +314,12 @@ function purchaseBuilding(event)
 
   if (colour == "Invalid")
     return;
-  i = 0;
-  while (buildingPenHelper[i] != 0 && i <= 7)
-    i++;
 
   building.graphics.beginStroke("black").beginFill(colour)
-  .drawCircle(50 + i * 100, 50, 50);
-  buildingPenHelper[i] = 1;
-  building.type = event.target.strBuildingType;
-  building.placement = i;
+  .drawCircle(50, 50, 50);
+  building.type = strBuildingType;
   buildingEventSetup(building);
-  buildingPen.addChild(building);
-  buildingPen.currentCapacity += 1;
-  return;
+  return building;
 }
 
 // Builds a grid tile for use in the map
@@ -297,7 +384,6 @@ function buildingPlacementEvent(gridSquare)
         gridSquare.isBuilding = true;
         pressobject = drawBuildingForMapPlacement(pressobject);
         gridSquare.addChild(pressobject.clone());
-        buildingPenHelper[pressobject.placement] = 0;
         gon.strBuildingMapSave[(gridSquare.x - gon.iMapOffsetX) / gon.iBaseTileLength][gridSquare.y / gon.iBaseTileLength] = pressobject.type;
         switch(pressobject.type)
           {
@@ -308,21 +394,29 @@ function buildingPlacementEvent(gridSquare)
             gon.iPassiveIncome = gon.iPassiveIncome + 10;
           }
         pressobject = null;
-        buildingPen.currentCapacity--;
         return;
       }
       else
       {
         // Else, Return the building to the pen
-        building = pressobject.clone(true);
-        building.type = pressobject.type;
-        building.placement = pressobject.placement;
-        buildingEventSetup(building);
-        buildingPen.addChild(building);
+        refundBuildingPurchase(pressobject.type);
         pressobject = null;
       }
     }
   });
+}
+
+function refundBuildingPurchase(strType)
+{
+  switch(strType)
+  {
+    case "Labour Camp":
+      gon.iToys += 100;
+      break;
+    case "Toy Mine":
+      gon.iToys += 500;
+      break;
+  }
 }
 
 function drawBuildingForMapPlacement(building)
@@ -360,21 +454,12 @@ function update() {
 // Initializes all necessary JS variables and adds required events
 function initialize()
 {
-    var clickingArea = document.getElementById("clicking-area");
-
-    initializeGameEvents();
-
     document.getElementById("nickname").innerHTML = gon.strNickname + "'s Workshop";
     updateToys();
 
     var timeinterval = setInterval(updateClock(gon.iTimeLeft), 1000);
 }
 
-function initializeGameEvents()
-{
-  document.getElementById("buy-labour-camp").addEventListener("click", purchaseBuilding, false);
-  document.getElementById("buy-labour-camp").strBuildingType = "Labour Camp";
-}
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
 function incrementToys()
 {
