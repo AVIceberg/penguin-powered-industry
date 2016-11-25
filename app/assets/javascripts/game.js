@@ -11,21 +11,11 @@ var buildingPen;
 var buildingPenHelper = [0, 0, 0, 0, 0, 0, 0, 0];
 
 function createjsinit(){
-  stage = new createjs.Stage("demoCanvas");
   stageCanvas = new createjs.Stage("gamecanvas");
-  // Draws the grid-based map and populates each square with a container
-  for (x = gon.iMapOffsetX ; x < gon.iMapSize + gon.iMapOffsetX; x = x + gon.iBaseTileLength)
-  {
-    for (y = 0 ; y < gon.iMapSize ; y = y + gon.iBaseTileLength)
-    {
-      var strType = getTerrainType(gon.strMapSave[y / gon.iBaseTileLength][(x - gon.iMapOffsetX) / gon.iBaseTileLength]); // Read map data to determine what goes here
-      var gridSquare = getGridSquare(x, y, gon.iBaseTileLength, gon.iBaseTileLength, strType); // Fetches a container for the square
 
-      // Adds the grid tile to the canvas
-      stageCanvas.addChild(gridSquare);
-      stageCanvas.update();
-    }
-  }
+  drawMap();
+  drawClickingArea();
+
   stageCanvas.enableMouseOver(); // Enables mouseover events for the canvas
 
   // Builds building pen
@@ -39,6 +29,37 @@ function createjsinit(){
   // Sets up ticker
   createjs.Ticker.setFPS(40);
   createjs.Ticker.addEventListener("tick",tick);
+}
+
+// Draws the grid-based map and populates each square with a container
+function drawMap()
+{
+  for (x = gon.iMapOffsetX ; x < gon.iMapSize + gon.iMapOffsetX; x = x + gon.iBaseTileLength)
+  {
+    for (y = 0 ; y < gon.iMapSize ; y = y + gon.iBaseTileLength)
+    {
+      var strType = getTerrainType(gon.strMapSave[y / gon.iBaseTileLength][(x - gon.iMapOffsetX) / gon.iBaseTileLength]); // Read map data to determine what goes here
+      var gridSquare = getGridSquare(x, y, gon.iBaseTileLength, gon.iBaseTileLength, strType); // Fetches a container for the square
+
+      // Adds the grid tile to the canvas
+      stageCanvas.addChild(gridSquare);
+      stageCanvas.update();
+    }
+  }
+}
+
+function drawClickingArea()
+{
+  // Graphics for clicking area
+  clickingArea = new createjs.Shape();
+  clickingArea.graphics.beginStroke("black").beginFill("#6666CC").drawRect(0, 0, gon.iMapOffsetX, 200);
+
+  // "Click" toy gain event
+  clickingArea.on("click", function(event) {
+    incrementToys();
+  });
+
+  stageCanvas.addChild(clickingArea);
 }
 
 function loadAllBuildings()
@@ -116,9 +137,7 @@ function buildingEventSetup(building)
   building.on("click", function(event) {
     if (pressobject == null)
     {
-      coordinates = { x:event.stageX - event.target.parent.x - event.target.x,
-                      y:event.stageY - event.target.parent.y - event.target.y,
-                      originX: event.target.x,
+      coordinates = { originX: event.target.x,
                       originY: event.target.y,
                       };
 
@@ -145,7 +164,6 @@ function buildingEventSetup(building)
 }
 
 function tick() {
-    stage.update();
     stageCanvas.update();
 }
 
@@ -344,11 +362,6 @@ function initialize()
 {
     var clickingArea = document.getElementById("clicking-area");
 
-    // Temporary Appearance for clicking canvas
-    var click = clickingArea.getContext("2d");
-    click.fillStyle=("#48489D");
-    click.fillRect(0, 0, 200, 200);
-   // Clicking Canvas appearance ends
     initializeGameEvents();
 
     document.getElementById("nickname").innerHTML = gon.strNickname + "'s Workshop";
@@ -359,7 +372,6 @@ function initialize()
 
 function initializeGameEvents()
 {
-  document.getElementById("clicking-area").addEventListener("click", incrementToys, false);
   document.getElementById("buy-labour-camp").addEventListener("click", purchaseBuilding, false);
   document.getElementById("buy-labour-camp").strBuildingType = "Labour Camp";
 }
