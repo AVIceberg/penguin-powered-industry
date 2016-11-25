@@ -6,11 +6,16 @@ class GameController < ApplicationController
       gon.strNickname = @user.nickname
       gon.iToys = @user.toys
       gon.iTimeLeft = @user.timeleft
+
       gon.iSaveInterval = 2 # Save every two minutes
-      gon.fClickMultiplier = 1.0
-      gon.iRequiredToys = 5 * @user.level
-      gon.iMapSize = 800
-      gon.iPassiveIncome = 0
+      gon.fClickMultiplier = 1.0 # Always 1.0 initially ; changed by events and upgrades
+      gon.iPassiveIncome = 0 # Passive income; initialized in-game
+
+      gon.iRequiredToys = 50000 * @user.level # The number of toys required for the user to beat the level
+
+      gon.iMapSize = 800 # Width / height of the map
+      gon.iMapOffsetX = 200 # Offset left on the canvas for other areas to be added to the left of the map
+      gon.iBaseTileLength = 100
 
       @map = Array.new(8){Array.new(8)}
       8.times do |i|

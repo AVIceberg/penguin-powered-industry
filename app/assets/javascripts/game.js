@@ -5,13 +5,7 @@
 window.onload=function(){ createjsinit(); initialize(); };
 
 var pressobject; // Tracks the building currently being placed
-var stage;
 var stageCanvas; // The primary canvas (Map)
-var link;
-var container;
-var circle;
-var mapsave=[];
-var buildingData={"home2":4};
 var temporaryCursor;
 var buildingPen;
 var buildingPenHelper = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -20,12 +14,12 @@ function createjsinit(){
   stage = new createjs.Stage("demoCanvas");
   stageCanvas = new createjs.Stage("gamecanvas");
   // Draws the grid-based map and populates each square with a container
-  for (x = 0 ; x < gon.iMapSize ; x = x + 100)
+  for (x = gon.iMapOffsetX ; x < gon.iMapSize + gon.iMapOffsetX; x = x + gon.iBaseTileLength)
   {
-    for (y = 0 ; y < gon.iMapSize ; y = y + 100)
+    for (y = 0 ; y < gon.iMapSize ; y = y + gon.iBaseTileLength)
     {
-      var strType = getTerrainType(gon.strMapSave[y / 100][x / 100]); // Read map data to determine what goes here
-      var gridSquare = getGridSquare(x, y, 100, 100, strType); // Fetches a container for the square
+      var strType = getTerrainType(gon.strMapSave[y / gon.iBaseTileLength][(x - gon.iMapOffsetX) / gon.iBaseTileLength]); // Read map data to determine what goes here
+      var gridSquare = getGridSquare(x, y, gon.iBaseTileLength, gon.iBaseTileLength, strType); // Fetches a container for the square
 
       // Adds the grid tile to the canvas
       stageCanvas.addChild(gridSquare);
@@ -35,7 +29,7 @@ function createjsinit(){
   stageCanvas.enableMouseOver(); // Enables mouseover events for the canvas
 
   // Builds building pen
-  buildingPen = getBuildingPen(0, gon.iMapSize, 800, 100);
+  buildingPen = getBuildingPen(gon.iMapOffsetX, gon.iMapSize, gon.iMapSize, gon.iBaseTileLength);
   stageCanvas.addChild(buildingPen);
   stageCanvas.update();
 
@@ -49,12 +43,13 @@ function createjsinit(){
 
 function loadAllBuildings()
 {
-  // Searches through to find any existant buildings and places them as appropriate
-  for (x = 0 ; x < gon.iMapSize ; x = x + 100)
+  // Searches through to find any existent buildings and places them as appropriate
+  for (x = 0 ; x < gon.iMapSize; x = x + gon.iBaseTileLength)
   {
-    for (y = 0 ; y < gon.iMapSize ; y = y + 100)
+    for (y = 0 ; y < gon.iMapSize ; y = y + gon.iBaseTileLength)
     {
-      var strType = (gon.strBuildingMapSave[x / 100][y / 100]); // Read map data to determine what goes here
+      // Note: X, Y reversed from map data
+      var strType = (gon.strBuildingMapSave[x / gon.iBaseTileLength][y / gon.iBaseTileLength]); // Read map data to determine what goes here
       if (strType != "0")
       {
         var colour = "Green";
@@ -66,21 +61,19 @@ function loadAllBuildings()
         {
           colour = "Grey";
         }
-
         pressobject = new createjs.Shape();
-        pressobject.graphics.beginStroke("black").beginFill("Brown")
+        pressobject.graphics.beginStroke("black").beginFill(colour)
         .drawCircle(50, 50, 50);
         pressobject.type = strType;
         pressobject.placement = 0;
         buildingEventSetup(pressobject);
 
-        gridSquare = stageCanvas.getObjectUnderPoint(x, y, 0);
+        gridSquare = stageCanvas.getObjectUnderPoint(x + gon.iMapOffsetX, y, 0);
         gridSquare.dispatchEvent("click")
       }
-    //  stageCanvas.addChild(gridSquare);
-    //  stageCanvas.update();
     }
   }
+  buildingPen.currentCapacity = 0;
 }
 
 // Determines the terrain type of the grid spot and returns its colour.
@@ -123,14 +116,26 @@ function buildingEventSetup(building)
   building.on("click", function(event) {
     if (pressobject == null)
     {
-      coordinates = {  x:event.stageX - event.target.parent.x - event.target.x,
+      coordinates = { x:event.stageX - event.target.parent.x - event.target.x,
                       y:event.stageY - event.target.parent.y - event.target.y,
                       originX: event.target.x,
-                      originY: event.target.y};
-      /*
-      temporaryCursor = new createjs.Shape();
-      temporaryCursor.graphics.beginFill("Green").drawCircle(50, 50, 50);
-      */
+                      originY: event.target.y,
+                      };
+
+      // Grab building graphics and store it in temp cursor
+      temporaryCursor = event.target.clone(true);
+      temporaryCursor.type = event.target.type;
+      temporaryCursor = drawBuildingForMapPlacement(temporaryCursor);
+      temporaryCursor.x = stageCanvas.mouseX - 50;
+      temporaryCursor.y = stageCanvas.mouseY - 50;
+      stageCanvas.addChild(temporaryCursor);
+
+      // While building is clicked, stageCanvas will update temporaryCursor's coordinates on mousemove
+      stageCanvas.on("stagemousemove", function(event2) {
+        temporaryCursor.x = event2.target.mouseX - 50;
+        temporaryCursor.y = event2.target.mouseY - 50;
+      });
+
       pressobject = event.target.clone(true);
       pressobject.type = event.target.type;
       pressobject.placement = event.target.placement;
@@ -164,12 +169,12 @@ function getBuildingPen(x, y, width, height)
 
 function purchaseBuilding(event)
 {
-  var building = new createjs.Shape();
-  var colour;
-
   // If pen is full, do not buy a new building
   if (buildingPen.currentCapacity >= 8)
     return;
+
+  var building = new createjs.Shape();
+  var colour;
 
   switch(event.target.strBuildingType)
   {
@@ -217,16 +222,19 @@ function getGridSquare(x, y, width, height, strType)
 {
   var gridSquare = new createjs.Container(); // Primary container
   var visualEffect = new createjs.Shape();   // Visual effect upon hover-over
+  var visualEffectProhibited = new createjs.Shape(); // Visual effect upon hover-over of unusable land
   var visualTerrain = new createjs.Shape();  // Terrain (I.e., visual appearance)
-
   gridSquare.x = x;
   gridSquare.y = y;
   gridSquare.setBounds(x * width, y * height, width, height);
 
-  // Hover-over colour / transparency
+  // Hover-over colours / transparency
   visualEffect.graphics.beginFill("#5FFF5f").drawRect(0, 0, width, height);
   visualEffect.alpha = 0.10;
+  visualEffectProhibited.graphics.beginFill("#FF5F5F").drawRect(0, 0, width, height);
+  visualEffectProhibited.alpha = 0.50;
 
+  // Terrain Graphics Setup
   visualTerrain.graphics.beginStroke("black").beginFill(getTerrainColour(strType)).drawRect(0, 0, width, height); // Draw terrain
 
   // Set container properties
@@ -241,22 +249,38 @@ function getGridSquare(x, y, width, height, strType)
 
   // To-Do: Display info on current building
   gridSquare.on("mouseover", function(event) {
-    gridSquare.addChild(visualEffect);
+    if (gridSquare.terrainType != "Water") {
+      gridSquare.addChild(visualEffect);
+    }
+    else {
+      gridSquare.addChild(visualEffectProhibited);
+    }
   });
   gridSquare.on("mouseout", function(event) {
     gridSquare.removeChild(visualEffect);
+    gridSquare.removeChild(visualEffectProhibited);
   });
 
-  // Handles cases wherein buildings are bei ng placed on the map
+  buildingPlacementEvent(gridSquare);
+  return gridSquare;
+}
+
+function buildingPlacementEvent(gridSquare)
+{
+  // Handles cases wherein buildings are being placed on the map
   gridSquare.on("click", function(event) {
     if (pressobject != null) {
+      // Remove custom cursor
+      stageCanvas.removeEventListener("mouseover");
+      stageCanvas.removeChild(temporaryCursor);
+      // If the tile is available to accept the building, accept it.
       if (gridSquare.terrainType != "Water" && gridSquare.isBuilding == false) // To-do: Expand for different types, make building specific
       {
         gridSquare.isBuilding = true;
         pressobject = drawBuildingForMapPlacement(pressobject);
         gridSquare.addChild(pressobject.clone());
         buildingPenHelper[pressobject.placement] = 0;
-        gon.strBuildingMapSave[gridSquare.x / 100][gridSquare.y / 100] = pressobject.type;
+        gon.strBuildingMapSave[(gridSquare.x - gon.iMapOffsetX) / gon.iBaseTileLength][gridSquare.y / gon.iBaseTileLength] = pressobject.type;
         switch(pressobject.type)
           {
           case 'Labour Camp':
@@ -269,16 +293,18 @@ function getGridSquare(x, y, width, height, strType)
         buildingPen.currentCapacity--;
         return;
       }
+      else
+      {
+        // Else, Return the building to the pen
+        building = pressobject.clone(true);
+        building.type = pressobject.type;
+        building.placement = pressobject.placement;
+        buildingEventSetup(building);
+        buildingPen.addChild(building);
+        pressobject = null;
+      }
     }
-    // Return the building to the pen
-    building = pressobject.clone(true);
-    building.type = pressobject.type;
-    building.placement = pressobject.placement;
-    buildingEventSetup(building);
-    buildingPen.addChild(building);
-    pressobject = null;
   });
-  return gridSquare;
 }
 
 function drawBuildingForMapPlacement(building)
@@ -300,14 +326,6 @@ function drawBuildingForMapPlacement(building)
 }
 
 function animate() {
-    // start the timer for the next animation loop
-    requestAnimationFrame(animate);
-
-    // each frame we spin the bunny around a bit
-    bunny.rotation += 0.01;
-
-    // this is the main render call that makes pixi draw your container and its children.
-    renderer.render(stage);
 }
 
 function preload() {
