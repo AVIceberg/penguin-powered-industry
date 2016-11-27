@@ -7,13 +7,17 @@ window.onload=function(){ createjsinit(); initialize(); };
 var pressobject; // Tracks the building currently being placed
 var stageCanvas; // The primary canvas (Map)
 var temporaryCursor;
-var numberOfBuildingTypes = 2;
-var buildingTypes = ["Labour Camp", "Toy Mine"];
+var numberOfBuildingTypes = 3;
+var terrainTypes = ["Invalid", "Tundra", "Water", "Shoreline"];
+var terrainColours = ["Green", "White", "#89cff0", "White"];
+var buildingTypes = ["Labour Camp", "Toy Mine", "Factory"];
+var buildingCosts = [100, 500, 2500];
+var buildingIncome = [5, 10, 100];
+var buildingImages = ["brown", "grey", "#FFFF88"];
 var shop;
 
 function createjsinit(){
   stageCanvas = new createjs.Stage("gamecanvas");
-
   // Initialize major map components
   drawMap(); // Draw map in 'center' of the canvas (offset from y-axis by iMapOffsetX)
   drawClickingArea(); // Draw clicking area to the left of the map (length iMapOffsetX)
@@ -43,9 +47,8 @@ function drawMap()
   {
     for (y = 0 ; y < gon.iMapSize ; y = y + gon.iBaseTileLength)
     {
-      var strType = getTerrainType(gon.strMapSave[y / gon.iBaseTileLength][(x - gon.iMapOffsetX) / gon.iBaseTileLength]); // Read map data to determine what goes here
-      var gridSquare = getGridSquare(x, y, gon.iBaseTileLength, gon.iBaseTileLength, strType); // Fetches a container for the square
-
+      var iType = (gon.strMapSave[y / gon.iBaseTileLength][(x - gon.iMapOffsetX) / gon.iBaseTileLength]); // Read map data to determine what goes here
+      var gridSquare = getGridSquare(x, y, gon.iBaseTileLength, gon.iBaseTileLength, iType); // Fetches a container for the square
       // Adds the grid tile to the canvas
       stageCanvas.addChild(gridSquare);
       stageCanvas.update();
@@ -89,7 +92,6 @@ function drawShop()
       // Instantiate boundaries / positioning
   shop.x = gon.iMapOffsetX + gon.iMapSize;
   shop.y = 0;
-  //shop.setBounds(0, 0, shopWidth, shopHeight);
 
       // Instantiate visual background
   visualShop.graphics.beginStroke("black").drawRect(0, 0, shopWidth, shopHeight);
@@ -100,8 +102,6 @@ function drawShop()
     // Instantiate boundaries / positioning
   buildingShop.x = gon.iMapOffsetX + gon.iMapSize + upgradeShopWidth;
   buildingShop.y = 0;
-  //buildingShop.setBounds(shop.x * (shopWidth - upgradeShopWidth), shop.y * shopHeight,
-   //shopWidth - upgradeShopWidth, shopHeight);
 
   instantiateBuildingButtons(buildingShop, shopWidth - upgradeShopWidth); // Create shop buttons and attach the relevant events
 
@@ -113,8 +113,6 @@ function drawShop()
   // Instantiate upgrade shop
   upgradeShop.x = shop.x;
   upgradeShop.y = 0;
-  //upgradeShop.setBounds(shop.x * upgradeShopWidth, shop.y * shopHeight,
-  // upgradeShopWidth, shopHeight);
 
   visualUpgradeShop.graphics.beginStroke("black").drawRect(0, 0, upgradeShopWidth, shopHeight);
   upgradeShop.addChild(visualUpgradeShop);
@@ -146,6 +144,7 @@ function instantiateBuildingButtons(buildingShop, buildingShopWidth)
     buildingButton.y = iIndex * buildingButtonHeight;
     buildingButton.x = 0;
 
+    // Sets the visual portion of the container to be the 'clickable' area
     buildingButton.addChild(buildingButtonVisual);
     buildingButton.hitArea = buildingButtonVisual;
 
@@ -154,18 +153,17 @@ function instantiateBuildingButtons(buildingShop, buildingShopWidth)
 
     buildingButton.addChild(buildingButtonText);
     buildingShop.addChild(buildingButton);
-
-    buildingButton.mouseChildren = true;
   }
 }
 
 function addButtonEvent(buildingButton, iIndex)
 {
+  buildingButton.iIndex = iIndex; // Index of the button
   buildingButton.on("click", function(event)
 {
   if (pressobject == null)
   {
-    var building = purchaseBuilding(buildingTypes[iIndex]);
+    var building = purchaseBuilding(buildingTypes[iIndex], event.target.iIndex);
     if (building != null)
     {
       building.dispatchEvent("click");
@@ -182,61 +180,22 @@ function loadAllBuildings()
     for (y = 0 ; y < gon.iMapSize ; y = y + gon.iBaseTileLength)
     {
       // Note: X, Y reversed from map data
-      var strType = (gon.strBuildingMapSave[x / gon.iBaseTileLength][y / gon.iBaseTileLength]); // Read map data to determine what goes here
-      if (strType != "0")
+      var iType = (gon.strBuildingMapSave[x / gon.iBaseTileLength][y / gon.iBaseTileLength]); // Read map data to determine what goes here
+
+      if (iType != "-1")
       {
-        var colour = "Green";
-        if (strType == "Labour Camp")
-        {
-          colour = "Brown";
-        }
-        else if (strType == "Toy Mine")
-        {
-          colour = "Grey";
-        }
+        var colour = getBuildingImage(iType);
+
         pressobject = new createjs.Shape();
         pressobject.graphics.beginStroke("black").beginFill(colour)
         .drawCircle(50, 50, 50);
-        pressobject.type = strType;
+        pressobject.type = iType;
         buildingEventSetup(pressobject);
 
         gridSquare = stageCanvas.getObjectUnderPoint(x + gon.iMapOffsetX, y, 0);
         gridSquare.dispatchEvent("click");
       }
     }
-  }
-}
-
-// Determines the terrain type of the grid spot and returns its colour.
-function getTerrainType(squareData)
-{
-  if (squareData == "P")
-  {
-    return "Plains";
-  }
-  else if (squareData == "W")
-  {
-    return "Water";
-  }
-  else
-  {
-      return "Error";
-  }
-}
-
-function getTerrainColour(strTileData)
-{
-  if (strTileData == "Plains")
-  {
-    return "White";
-  }
-  else if (strTileData == "Water")
-  {
-    return "#89cff0";
-  }
-  else
-  {
-      return "Green";
   }
 }
 
@@ -277,57 +236,66 @@ function tick() {
     stageCanvas.update();
 }
 
-function purchaseBuilding(strBuildingType)
+function purchaseBuilding(strBuildingType, iIndex)
 {
   var building = new createjs.Shape();
-  var colour;
-  switch(strBuildingType)
-  {
-    case "Labour Camp":
-      if (gon.iToys >= 100)
-      {
-        colour = "Brown";
-        gon.iToys = gon.iToys - 100;
-        updateToys();
-      }
-      else
-      {
-        document.getElementById("error").innerHTML = "At least 100 toys are required to buy a Labour Camp!";
-        colour = "Invalid";
-        errorClearInterval = 0;
-      }
-      break;
-    case "Toy Mine":
-      if (gon.iToys >= 500)
-      {
-      colour = "Grey";
-      gon.iToys = gon.iToys - 500;
-      updateToys();
-      }
-      else
-      {
-          document.getElementById("error").innerHTML = "At least 500 toys are required to buy a Toy Mine!";
-          colour = "Invalid";
-          errorClearINterval = 0;
-      }
-      break;
-    default:
-      colour = "Invalid";
-      break;
-  }
+  var colour = getBuildingImage(iIndex);
 
   if (colour == "Invalid")
     return;
+  else
 
-  building.graphics.beginStroke("black").beginFill(colour)
-  .drawCircle(50, 50, 50);
-  building.type = strBuildingType;
-  buildingEventSetup(building);
-  return building;
+  if (deductCost(iIndex))
+  {
+    building.graphics.beginStroke("black").beginFill(colour)
+    .drawCircle(50, 50, 50);
+    building.type = iIndex;
+    buildingEventSetup(building);
+    return building;
+  }
 }
 
+function getBuildingImage(iIndexOfBuildingType)
+{
+  var colour;
+  // Error checking
+  if ((buildingTypes.length <= iIndexOfBuildingType) || (iIndexOfBuildingType < 0))
+  {
+    colour = "Invalid";
+    return colour;
+  }
+  if (gon.iToys >= buildingCosts[iIndexOfBuildingType])
+  {
+    colour = buildingImages[iIndexOfBuildingType];
+  }
+  else
+  {
+    colour = "Invalid";
+  }
+
+  return colour;
+}
+
+function deductCost(iIndexOfBuildingType)
+{
+  var hasEnoughToys = false;
+  if (gon.iToys >= buildingCosts[iIndexOfBuildingType])
+  {
+    gon.iToys = gon.iToys - buildingCosts[iIndexOfBuildingType];
+    hasEnoughToys = true;
+  }
+  else
+  {
+    document.getElementById("error").innerHTML = "At least " + buildingCosts[iIndexOfBuildingType] +
+    "toys are required to build a " + buildingTypes[iIndexOfBuildingType];
+    errorClearInterval = 0;
+  }
+  return hasEnoughToys;
+}
+
+
 // Builds a grid tile for use in the map
-function getGridSquare(x, y, width, height, strType)
+function getGridSquare(x, y, width, height, iType)
 {
   var gridSquare = new createjs.Container(); // Primary container
   var visualEffect = new createjs.Shape();   // Visual effect upon hover-over
@@ -344,21 +312,21 @@ function getGridSquare(x, y, width, height, strType)
   visualEffectProhibited.alpha = 0.50;
 
   // Terrain Graphics Setup
-  visualTerrain.graphics.beginStroke("black").beginFill(getTerrainColour(strType)).drawRect(0, 0, width, height); // Draw terrain
+  visualTerrain.graphics.beginStroke("black").beginFill(terrainColours[iType]).drawRect(0, 0, width, height); // Draw terrain
 
   // Set container properties
   gridSquare.addChild(visualTerrain);
   gridSquare.hitArea = visualTerrain;
   gridSquare.width = x * width;
   gridSquare.height = y * height;
-  gridSquare.isBuilding = false;
-  gridSquare.terrainType = strType; // Stores terrain type for building logic
+  gridSquare.isBuilding = false;  // Tracks whether the tile contains a building
+  gridSquare.terrainType = iType; // Stores terrain type for building logic
 
   // EVENTS
 
   // To-Do: Display info on current building
   gridSquare.on("mouseover", function(event) {
-    if (gridSquare.terrainType != "Water") {
+    if (gridSquare.terrainType != 2) {
       gridSquare.addChild(visualEffect);
     }
     else {
@@ -383,20 +351,14 @@ function buildingPlacementEvent(gridSquare)
       stageCanvas.removeEventListener("mouseover");
       stageCanvas.removeChild(temporaryCursor);
       // If the tile is available to accept the building, accept it.
-      if (gridSquare.terrainType != "Water" && gridSquare.isBuilding == false) // To-do: Expand for different types, make building specific
+      if (gridSquare.terrainType != 2 && gridSquare.isBuilding == false) // To-do: Expand for different types, make building specific
       {
         gridSquare.isBuilding = true;
         pressobject = drawBuildingForMapPlacement(pressobject);
         gridSquare.addChild(pressobject.clone());
         gon.strBuildingMapSave[(gridSquare.x - gon.iMapOffsetX) / gon.iBaseTileLength][gridSquare.y / gon.iBaseTileLength] = pressobject.type;
-        switch(pressobject.type)
-          {
-          case 'Labour Camp':
-            gon.iPassiveIncome = gon.iPassiveIncome + 5;
-            break;
-          case 'Toy Mine':
-            gon.iPassiveIncome = gon.iPassiveIncome + 10;
-          }
+        gon.iPassiveIncome += buildingIncome[pressobject.type];
+
         pressobject = null;
         return;
       }
@@ -410,32 +372,14 @@ function buildingPlacementEvent(gridSquare)
   });
 }
 
-function refundBuildingPurchase(strType)
+function refundBuildingPurchase(iType)
 {
-  switch(strType)
-  {
-    case "Labour Camp":
-      gon.iToys += 100;
-      break;
-    case "Toy Mine":
-      gon.iToys += 500;
-      break;
-  }
+  gon.iToys += buildingCosts[iType];
 }
 
 function drawBuildingForMapPlacement(building)
 {
-  var colour = "Green"; // Green == Error
-
-  switch(building.type)
-  {
-    case 'Labour Camp':
-      colour = "Brown";
-      break;
-    case 'Toy Mine':
-      colour = "Grey";
-      break;
-  }
+  var colour = getBuildingImage(parseInt(building.type)); // Green == Error
   building.graphics.clear("White");
   building.graphics.beginFill(colour).drawCircle(50, 50, 50);
   return building;
