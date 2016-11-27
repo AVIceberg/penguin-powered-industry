@@ -140,18 +140,22 @@ function instantiateBuildingButtons(buildingShop, buildingShopWidth)
     buildingButtonText.x = buildingShopWidth / 2;
     buildingButtonText.y = buildingButtonHeight / 2;
 
-    buildingButtonVisual.graphics.beginStroke("black").drawRect(0, 0, buildingShopWidth, buildingButtonHeight);
+    buildingButtonVisual.graphics.beginStroke("black").beginFill("white").drawRect(0, 0, buildingShopWidth, buildingButtonHeight);
 
     // Determine button position within shop
     buildingButton.y = iIndex * buildingButtonHeight;
     buildingButton.x = 0;
 
+    buildingButton.addChild(buildingButtonVisual);
+    buildingButton.hitArea = buildingButtonVisual;
+
     buildingButton.strBuildingType = buildingTypes[iIndex];
     addButtonEvent(buildingButton, iIndex); // Add purchase event to click
 
-    buildingButton.addChild(buildingButtonVisual);
     buildingButton.addChild(buildingButtonText);
     buildingShop.addChild(buildingButton);
+
+    buildingButton.mouseChildren = true;
   }
 }
 
