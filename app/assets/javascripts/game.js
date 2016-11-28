@@ -19,6 +19,7 @@ var buildingCosts = [100, 500, 2500];
 var buildingIncome = [5, 10, 100];
 var buildingSize = [1, 1, 2]; // Size of each building (i x i) on the grid
 var buildingImages = ["brown", "grey", "#FFFF88"];
+var tilesHoveredOver = [[null, null, null], [null, null, null], [null, null, null]];
 
 var penguinCapacity = [20, 100, 1000];
 
@@ -360,15 +361,16 @@ function getGridSquare(x, y, width, height, iType)
 
     // If user is placing a building, light up relevant tiles persuant to user's choice
     // DISABLED: BUG - Will fix Monday
-    if ( (pressobject != null) && (gridSquare.hovering == false) && gridSquare.hitTest(point.x, point.y) && false)
+    if ( (pressobject != null) && (gridSquare.hovering == false) && gridSquare.hitTest(point.x, point.y) )
     {
       gridSquare.hovering = true;
-      gridTilesAffected = getTiles(gridSquare);
+      tilesHoveredOver = getTiles(gridSquare);
+      //window.alert(tilesHoveredOver);
       for (i = 0 ; i < pressobject.size ; i++)
       {
         for (j = 0 ; j < pressobject.size ; j++)
         {
-          gridTilesAffected[i][j].dispatchEvent("mouseover");
+          tilesHoveredOver[i][j].dispatchEvent("mouseover");
         }
       }
     }
@@ -400,13 +402,12 @@ function getGridSquare(x, y, width, height, iType)
      if (pressobject != null && gridSquare.hovering == true)
      {
        gridSquare.hovering = false;
-       gridTilesAffected = getTiles(gridSquare);
 
        for (i = 0 ; i < pressobject.size ; i++)
        {
          for (j = 0 ; j < pressobject.size ; j++)
          {
-           gridTilesAffected[i][j].dispatchEvent("mouseout");
+           tilesHoveredOver[i][j].dispatchEvent("mouseout");
          }
        }
      }
@@ -462,13 +463,14 @@ function buildingPlacementEvent(gridSquare)
         gridSquare.addChild(pressobject.clone());
         gon.strBuildingMapSave[(gridSquare.x - gon.iMapOffsetX) / gon.iBaseTileLength][gridSquare.y / gon.iBaseTileLength] = pressobject.type;
         gon.iPassiveIncome += buildingIncome[pressobject.type];
-        pressobject = null;
         gridSquare.dispatchEvent("mouseout");
+        pressobject = null;
         return;
       }
       else
       {
         // Else, Refund the building
+        gridSquare.dispatchEvent("mouseout");
         refundBuildingPurchase(pressobject.type);
         pressobject = null;
       }
@@ -486,8 +488,16 @@ function getTiles(gridSquare)
     for (j = 0 ; j < pressobject.size ; j++)
     {
       // Get the container and add it to an array
-      tile = stageCanvas.getObjectUnderPoint(gridSquare.x + (gon.iBaseTileLength * i) + iOffset, gridSquare.y + (gon.iBaseTileLength * j) + iOffset, 0);
-      gridTilesAffected[i][j] = tile;
+      tile = stageCanvas.getObjectUnderPoint(gridSquare.x + (gon.iBaseTileLength * i) + iOffset, gridSquare.y + (gon.iBaseTileLength * j) + iOffset, 2);
+
+      if (tile.hasEventListener("mouseover"))
+      {
+            gridTilesAffected[i][j] = tile;
+      }
+      else
+      {
+          gridTilesAffected[i][j] = tile.parent;
+      }
     }
   }
   return gridTilesAffected;
