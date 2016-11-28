@@ -13,7 +13,7 @@ var numberOfBuildingTypes = 3;
 var terrainTypes = ["Invalid", "Tundra", "Water", "Shoreline"];
 var terrainColours = ["Green", "White", "#89cff0", "White"];
 
-var terrainTypesPermitted = [["Tundra"], ["Tundra"], ["Tundra"]];
+var terrainTypesPermitted = [["Tundra", "Shoreline"], ["Tundra", "Shoreline"], ["Tundra", "Shoreline"]];
 var buildingTypes = ["Labour Camp", "Toy Mine", "Factory"];
 var buildingCosts = [100, 500, 2500];
 var buildingIncome = [5, 10, 100];
@@ -62,7 +62,7 @@ function drawClickingArea()
 {
   // Graphics for clicking area
   clickingArea = new createjs.Shape();
-  clickingArea.graphics.beginStroke("black").beginFill("#6666CC").drawRect(0, 0, gon.iMapOffsetX, 200);
+  clickingArea.graphics.beginStroke("black").beginFill("#6666CC").drawRect(0, 0, gon.iMapOffsetX - 5, 200);
 
   // "Click" toy gain event
   clickingArea.on("click", function(event) {
@@ -174,7 +174,7 @@ function addButtonEvent(buildingButton, iIndex)
   if (pressobject == null)
   {
     var building = purchaseBuilding(buildingTypes[iIndex], event.target.iIndex);
-    if (building != null)
+    if (building)
     {
       building.dispatchEvent("click");
     }
@@ -184,6 +184,7 @@ function addButtonEvent(buildingButton, iIndex)
 
 function loadAllBuildings()
 {
+  var iOffset = 5; // Prevents objects that share boundaries from being selected erroneously
   // Searches through to find any existent buildings and places them as appropriate
   for (x = 0 ; x < gon.iMapSize; x = x + gon.iBaseTileLength)
   {
@@ -198,7 +199,7 @@ function loadAllBuildings()
 
         pressobject = createBuilding(iType, colour);
 
-        gridSquare = stageCanvas.getObjectUnderPoint(x + gon.iMapOffsetX, y, 0);
+        gridSquare = stageCanvas.getObjectUnderPoint(x + gon.iMapOffsetX + iOffset, y, 0);
         gridSquare.dispatchEvent("click");
       }
     }
@@ -220,7 +221,7 @@ function buildingEventSetup(building)
       // Grab building graphics and store it in temp cursor
       temporaryCursor = event.target.clone(true);
       temporaryCursor.type = event.target.type;
-      temporaryCursor = drawBuildingForMapPlacement(temporaryCursor);
+      temporaryCursor = drawBuildingForMapPlacement(temporaryCursor, event.target.size);
       temporaryCursor.x = stageCanvas.mouseX - 50;
       temporaryCursor.y = stageCanvas.mouseY - 50;
       stageCanvas.addChild(temporaryCursor);
@@ -265,6 +266,7 @@ function purchaseBuilding(strBuildingType, iIndex)
   }
 }
 
+// Creates a building to be purchased
 function createBuilding(iIndexOfBuildingType, colour)
 {
   // Builds building graphic
@@ -329,7 +331,7 @@ function getGridSquare(x, y, width, height, iType)
   var visualTerrain = new createjs.Shape();  // Terrain (I.e., visual appearance)
   gridSquare.x = x;
   gridSquare.y = y;
-  gridSquare.setBounds(x * width, y * height, width, height);
+  //gridSquare.setBounds(x * width, y * height, width, height);
 
   // Hover-over colours / transparency
   visualEffect.graphics.beginFill("#5FFF5f").drawRect(0, 0, width, height);
@@ -343,25 +345,76 @@ function getGridSquare(x, y, width, height, iType)
   // Set container properties
   gridSquare.addChild(visualTerrain);
   gridSquare.hitArea = visualTerrain;
-  gridSquare.width = x * width;
-  gridSquare.height = y * height;
+  gridSquare.width = width;
+  gridSquare.height = height;
   gridSquare.isBuilding = false;  // Tracks whether the tile contains a building
   gridSquare.terrainType = iType; // Stores terrain type for building logic
+  gridSquare.hovering = false;
 
   // GRID TILE HOVER-OVER EVENTS
 
-  // To-Do: Display info on current building
-  gridSquare.on("mouseover", function(event) {
-    if (gridSquare.terrainType != 2) {
+  // To-Do: Display info on current building (Tooltips)
+  gridSquare.on("mouseover", function(event)
+  {
+    var point = gridSquare.globalToLocal(stageCanvas.mouseX, stageCanvas.mouseY);
+
+    // If user is placing a building, light up relevant tiles persuant to user's choice
+    // DISABLED: BUG - Will fix Monday
+    if ( (pressobject != null) && (gridSquare.hovering == false) && gridSquare.hitTest(point.x, point.y) && false)
+    {
+      gridSquare.hovering = true;
+      gridTilesAffected = getTiles(gridSquare);
+      for (i = 0 ; i < pressobject.size ; i++)
+      {
+        for (j = 0 ; j < pressobject.size ; j++)
+        {
+          gridTilesAffected[i][j].dispatchEvent("mouseover");
+        }
+      }
+    }
+    else if (pressobject != null)
+    {
+      if (gridSquare.isBuilding == true || terrainTypesPermitted[pressobject.type].indexOf(terrainTypes[gridSquare.terrainType]) < 0)
+      {
+        gridSquare.addChild(visualEffectProhibited);
+      }
+      else
+      {
+          gridSquare.addChild(visualEffect);
+      }
+    }
+    // Else, light all non-water tiles green, and water tiles red
+    else if (gridSquare.terrainType != 2)
+    {
       gridSquare.addChild(visualEffect);
     }
-    else {
+    else
+    {
       gridSquare.addChild(visualEffectProhibited);
     }
   });
-  gridSquare.on("mouseout", function(event) {
-    gridSquare.removeChild(visualEffect);
-    gridSquare.removeChild(visualEffectProhibited);
+
+  gridSquare.on("mouseout", function(event)
+   {
+     var point = gridSquare.globalToLocal(stageCanvas.mouseX, stageCanvas.mouseY);
+     if (pressobject != null && gridSquare.hovering == true)
+     {
+       gridSquare.hovering = false;
+       gridTilesAffected = getTiles(gridSquare);
+
+       for (i = 0 ; i < pressobject.size ; i++)
+       {
+         for (j = 0 ; j < pressobject.size ; j++)
+         {
+           gridTilesAffected[i][j].dispatchEvent("mouseout");
+         }
+       }
+     }
+     else
+     {
+       gridSquare.removeChild(visualEffect);
+       gridSquare.removeChild(visualEffectProhibited);
+     }
   });
 
   buildingPlacementEvent(gridSquare);
@@ -378,35 +431,40 @@ function buildingPlacementEvent(gridSquare)
       stageCanvas.removeEventListener("mouseover");
       stageCanvas.removeChild(temporaryCursor);
 
-      var gridTilesAffected;
-      var validLocation = true;
-/*
-      // Collect affected containers and check for validity
-      for (i = 0 ; i < pressobject.size ; i++)
-      {
-        for (j = 0 ; j < pressobject.size ; j++)
-        { // Get the container and add it to an array
-          tile = getObjectUnderPoint(gridSquare.x + gon.iBaseTileLength * i, gridSquare.y + gon.iBaseTileLength * j)
-
-          // Check whether terrain is valid for the placed building
-          if (terrainTypesPermitted[pressobject.type].indexof(terrainTypes[tile.terrainType]) < 0 || tile.isBuilding == true)
-          {
-            validLocation = false;
-          }
-          gridTilesAffected[i][j] = tile;
-        }
-      }
-
+      var gridTilesAffected = getTiles(gridSquare) // Collect affected containers and check for validity
+      var validLocation = validateTiles(gridTilesAffected);
       // If the location is valid, place the building
-      if (validLocation)
+      if (validLocation == true)
       {
-        for (i = 0 ; i < pressobject.size ; i++)
+        // If necessary, draw a new container to hold the building (if it is larger than a 1x1)
+        if (pressobject.size > 1)
         {
-          for (j = 0 ; j < pressobject.size ; j++)
+          // Remove all 1v1 tiles to make room for the new container
+          for (i = 0 ; i < pressobject.size ; i++)
           {
-            gridTilesAffected[i][j].isBuilding = true; // Each tile is now part of a building, and thus invalid for future use
+            for (j = 0 ; j < pressobject.size ; j++)
+            {
+              stageCanvas.removeChild(gridTilesAffected[i][j]);
+            }
           }
+          // Create the new container
+          gridSquare = getGridSquare(gridSquare.x, gridSquare.y, gon.iBaseTileLength * pressobject.size, gon.iBaseTileLength * pressobject.size, 1);
+          gridSquare.isBuilding = true;
+          stageCanvas.addChild(gridSquare);
         }
+        else
+        {
+          gridSquare.isBuilding = true;
+        }
+
+        // Draw building, place it in the grid, and update income as necessary
+        pressobject = drawBuildingForMapPlacement(pressobject, pressobject.size);
+        gridSquare.addChild(pressobject.clone());
+        gon.strBuildingMapSave[(gridSquare.x - gon.iMapOffsetX) / gon.iBaseTileLength][gridSquare.y / gon.iBaseTileLength] = pressobject.type;
+        gon.iPassiveIncome += buildingIncome[pressobject.type];
+        pressobject = null;
+        gridSquare.dispatchEvent("mouseout");
+        return;
       }
       else
       {
@@ -414,22 +472,46 @@ function buildingPlacementEvent(gridSquare)
         refundBuildingPurchase(pressobject.type);
         pressobject = null;
       }
-*/
-      // If the tile is available to accept the building, accept it.
-      if (gridSquare.terrainType != 2 && gridSquare.isBuilding == false) // To-do: Expand for different types, make building specific
-      {
-        gridSquare.isBuilding = true;
-        pressobject = drawBuildingForMapPlacement(pressobject);
-        gridSquare.addChild(pressobject.clone());
-        gon.strBuildingMapSave[(gridSquare.x - gon.iMapOffsetX) / gon.iBaseTileLength][gridSquare.y / gon.iBaseTileLength] = pressobject.type;
-        gon.iPassiveIncome += buildingIncome[pressobject.type];
-
-        pressobject = null;
-        return;
-      }
     }
   });
 }
+
+// Grabs all tiles relevant to the building being placed, checks their validity, and adds them to an array
+function getTiles(gridSquare)
+{
+  gridTilesAffected = [[null, null, null], [null, null, null], [null, null, null]];
+  var iOffset = 5; // Prevents the program from 'catching' on a container that shares a boundary with our desired one
+  for (i = 0 ; i < pressobject.size ; i++)
+  {
+    for (j = 0 ; j < pressobject.size ; j++)
+    {
+      // Get the container and add it to an array
+      tile = stageCanvas.getObjectUnderPoint(gridSquare.x + (gon.iBaseTileLength * i) + iOffset, gridSquare.y + (gon.iBaseTileLength * j) + iOffset, 0);
+      gridTilesAffected[i][j] = tile;
+    }
+  }
+  return gridTilesAffected;
+}
+
+// Given an array of tiles, it validates their ability to hold the building currently being placed.
+function validateTiles(gridTilesAffected)
+{
+  var validLocation = true;
+  for (i = 0 ; i < pressobject.size ; i++)
+  {
+    for (j = 0 ; j < pressobject.size ; j++)
+    {
+      // Get the container and validate it as a position for building currently being placed
+      tile = gridTilesAffected[i][j];
+      if (tile.isBuilding == true || terrainTypesPermitted[pressobject.type].indexOf(terrainTypes[tile.terrainType]) < 0)
+      {
+        validLocation = false;
+      }
+    }
+  }
+  return validLocation;
+}
+
 
 // Refunds the building purchase when the user decides to cancel it by clicking in an invalid location
 function refundBuildingPurchase(iType)
@@ -438,12 +520,12 @@ function refundBuildingPurchase(iType)
 }
 
 // Redraws the building with the proper coordinates to fit into its grid tile
-function drawBuildingForMapPlacement(building)
+function drawBuildingForMapPlacement(building, size)
 {
   var colour = getBuildingImage(building.type); // Green == Error
   building.graphics.clear("White");
 
-  building.graphics.beginFill(colour).drawCircle(50, 50, 50);
+  building.graphics.beginFill(colour).drawCircle(50 * size, 50 * size, 50 * size);
   return building;
 }
 
