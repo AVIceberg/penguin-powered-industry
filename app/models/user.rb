@@ -1,7 +1,7 @@
 class User < ActiveRecord::Base
-  has_many :buildings, dependent: :destroy
+  #has_many :building, dependent: :destroy
 
-  
+
   def password=(password)
     self.password_digest = BCrypt::Password.create(password)
   end

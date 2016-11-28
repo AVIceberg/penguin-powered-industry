@@ -1,5 +1,5 @@
 class Building < ActiveRecord::Base
-  belongs_to :user
+  #belongs_to :user
 
   validates :max_generation,
   numericality: {only_integer: true, greater_than: 0}
