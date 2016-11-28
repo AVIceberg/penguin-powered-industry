@@ -2,7 +2,7 @@
 // All this logic will automatically be available in application.js.
 
 // Initializes game logic and the map
-window.onload=function(){ createjsinit(); initialize(); };
+window.onload=function(){ createjsinit(); initialize();  };
 
 var pressobject; // Tracks the building currently being placed
 var stageCanvas; // The primary canvas (Map)
@@ -19,6 +19,7 @@ var buildingCosts = [100, 500, 2500];
 var buildingIncome = [5, 10, 100];
 var buildingSize = [1, 1, 2]; // Size of each building (i x i) on the grid
 var buildingImages = ["brown", "grey", "#FFFF88"];
+
 
 var penguinCapacity = [20, 100, 1000];
 
@@ -39,6 +40,32 @@ function createjsinit(){
   // Sets up ticker
   createjs.Ticker.setFPS(40);
   createjs.Ticker.addEventListener("tick",tick);
+}
+
+function admin(){
+  
+  if (gon.iadmin == true){
+    
+    document.getElementById("nickname").innerHTML += "<font color='red'>(ADMIN)</font>";
+    var user_options = document.getElementById("user-options");
+    var add10000 = document.createElement("BUTTON");
+    add10000.appendChild(document.createTextNode("Add 10000 toys"));
+    add10000.setAttribute("onclick", "gon.iToys += 10000; updateToys();");
+    var substractminute =document.createElement("BUTTON");
+    substractminute.appendChild(document.createTextNode("Substract a minute"));
+    substractminute.setAttribute("onclick", "gon.iTimeLeft -= 60;");
+    user_options.appendChild(add10000);
+    user_options.appendChild(substractminute);
+    
+    
+    
+    
+    
+    
+  }
+  
+  
+  
 }
 
 // Draws the grid-based map and populates each square with a container
@@ -241,8 +268,12 @@ function buildingEventSetup(building)
       pressobject.currentPenguins = event.target.currentPenguins;
       pressobject.allowedTerrain = event.target.allowedTerrain;
       pressobject.placement = event.target.placement;
+      
+      if ( event.target.parent !== null){
+        event.target.parent.removeChild(event.target);
+      }
 
-      event.target.parent.removeChild(event.target);
+      
     }
   });
 }
@@ -549,7 +580,8 @@ function initialize()
     document.getElementById("nickname").innerHTML = gon.strNickname + "'s Workshop";
     updateToys();
 
-    var timeinterval = setInterval(updateClock(gon.iTimeLeft), 1000);
+    interval = setInterval(updateClock(gon.iTimeLeft), 1000);
+    admin();
 }
 
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
@@ -592,7 +624,14 @@ $(document).on("click", "#save-button", callSave);
 var errorClearInterval = 0;               //initialization
 var eventClearInterval = 0;               //initialization
 function updateClock(time_left) {
+  
   function updateClock2() {
+    
+    if (typeof gon.iTimeLeft !== 'undefined'){
+      time_left = gon.iTimeLeft;
+    }
+    
+    
     if(time_left <= 1) {
       clearInterval(timeinterval);
       if(gon.iRequiredToys < gon.iToys) {

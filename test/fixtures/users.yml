@@ -44,3 +44,17 @@ Bob:
   max: 0
   admin: false
   password_digest: <%= BCrypt::Password.create('testing') %>
+  
+Cat:
+  fname: Cate
+  lname: Lastcat
+  nickname: cat
+  email: cat@cat.org
+  id: 3
+  level: 2
+  max: 0
+  admin: false
+  password_digest: <%= BCrypt::Password.create('testing') %>
+  timeleft: 1000
+  toys: 0
+  

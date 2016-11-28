@@ -3,7 +3,7 @@ require 'test_helper'
 class UserTest < ActiveSupport::TestCase
 
   def setup
-    @user = User.new(fname: "Example", lname: "User", nickname: "Demo", email: "user@example.com", password: "tested", password_confirmation: "tested", level: 1, max: 0)
+    @user = User.new(fname: "Example", lname: "User", nickname: "Demo", email: "user@example.com", password: "tested", password_confirmation: "tested", level: 1, max: 0, toys: 0)
   end
 
   # test for initial setup
@@ -88,6 +88,14 @@ class UserTest < ActiveSupport::TestCase
     duplicated_user.email = @user.email.upcase
     @user.save
     assert_not duplicated_user.valid?
+  end
+  
+  test "toys >= 0" do
+    assert @user.valid?
+    @user.toys = -1
+    assert_not @user.valid?
+    @user.toys = 8
+    assert @user.valid?
   end
 
   # test "the truth" do

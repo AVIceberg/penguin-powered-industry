@@ -74,6 +74,7 @@ src_dir:
 # spec_dir: spec/javascripts
 #
 spec_dir:
+  - spec/javascripts
 
 # spec_helper
 #
