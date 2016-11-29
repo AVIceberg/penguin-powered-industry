@@ -19,8 +19,10 @@ var buildingCosts = [100, 500, 2500];
 var buildingIncome = [5, 10, 100];
 var buildingSize = [1, 1, 2]; // Size of each building (i x i) on the grid
 var buildingImages = ["brown", "grey", "#FFFF88"];
-var tilesHoveredOver = [[null, null, null], [null, null, null], [null, null, null]];
 
+var incomeGeneratedPerType = [0, 0, 0];
+
+var tilesHoveredOver = [[null, null, null], [null, null, null], [null, null, null]];
 
 var penguinCapacity = [20, 100, 1000];
 
@@ -44,10 +46,11 @@ function createjsinit(){
 }
 
 function admin(){
-  
-  if (gon.iadmin == true){
-    
+
+  if (gon.iadmin == true)
+  {
     document.getElementById("nickname").innerHTML += "<font color='red'>(ADMIN)</font>";
+
     var user_options = document.getElementById("user-options");
     var add10000 = document.createElement("BUTTON");
     add10000.appendChild(document.createTextNode("Add 10000 toys"));
@@ -55,18 +58,10 @@ function admin(){
     var substractminute =document.createElement("BUTTON");
     substractminute.appendChild(document.createTextNode("Substract a minute"));
     substractminute.setAttribute("onclick", "gon.iTimeLeft -= 60;");
+
     user_options.appendChild(add10000);
     user_options.appendChild(substractminute);
-    
-    
-    
-    
-    
-    
   }
-  
-  
-  
 }
 
 // Draws the grid-based map and populates each square with a container
@@ -269,12 +264,11 @@ function buildingEventSetup(building)
       pressobject.currentPenguins = event.target.currentPenguins;
       pressobject.allowedTerrain = event.target.allowedTerrain;
       pressobject.placement = event.target.placement;
-      
-      if ( event.target.parent !== null){
+
+      if ( event.target.parent != null)
+      {
         event.target.parent.removeChild(event.target);
       }
-
-      
     }
   });
 }
@@ -519,7 +513,7 @@ function getTiles(gridSquare)
     for (j = 0 ; j < pressobject.size ; j++)
     {
       // Get the container and add it to an array
-      tile = stageCanvas.getObjectUnderPoint(gridSquare.x + (gon.iBaseTileLength * i) + iOffset, gridSquare.y + (gon.iBaseTileLength * j) + iOffset, 2);
+      tile = stageCanvas.getObjectUnderPoint(stageCanvas.mouseX + (gon.iBaseTileLength * i), stageCanvas.mouseY + (gon.iBaseTileLength * j), 2);
 
       if (tile.hasEventListener("mouseover"))
       {
@@ -634,14 +628,14 @@ $(document).on("click", "#save-button", callSave);
 var errorClearInterval = 0;               //initialization
 var eventClearInterval = 0;               //initialization
 function updateClock(time_left) {
-  
+
   function updateClock2() {
-    
+
     if (typeof gon.iTimeLeft !== 'undefined'){
       time_left = gon.iTimeLeft;
     }
-    
-    
+
+
     if(time_left <= 1) {
       clearInterval(timeinterval);
       if(gon.iRequiredToys < gon.iToys) {
