@@ -17,6 +17,9 @@ var terrainColours = ["Green", "White", "#89cff0", "White"];
 
 var terrainTypesPermitted = [["Tundra", "Shoreline"], ["Tundra", "Shoreline"], ["Tundra", "Shoreline"]];
 var buildingTypes = ["Labour Camp", "Toy Mine", "Factory"];
+var buildingDescriptions = ["A nice, happy place to get some work done.", "Beneath the earth lie treasures aplenty...",
+                            "The grinding of gears can be heard within."];
+
 var buildingCosts = [100, 500, 2500];
 var buildingIncome = [5, 10, 100];
 var buildingSize = [1, 1, 2]; // Size of each building (i x i) on the grid
@@ -25,6 +28,7 @@ var penguinCapacity = [20, 100, 1000];
 
 // Income-Handling Variables
 var incomeGeneratedPerBuildingType = [0, 0, 0]; // Used to track how much each building type is producing per second
+var numberOfBuildingsOwned = [0, 0, 0];         // Tracks the number of each building type owned
 var buildingTypeMultipliers = [1.0, 1.0, 1.0];  // Tracks current multipliers for each building (affected by upgrades, events)
 var fTotalPassiveIncome = 0.0;                  // Total generated income
 var fClickMultiplier = 1.0;                     // Current multiplier for clicks (affected by upgrades, events)
@@ -35,6 +39,7 @@ var iSaveInterval = 2;
 var iMapSize = 800;
 var iMapOffsetX = 200;
 var iBaseTileLength = 100;
+var buildingShopWidth = 300;
 
 // Tracks which tiles are currently illuminated / hovered over by a building during placement
 var tilesHoveredOver = [[null, null, null], [null, null, null], [null, null, null]];
@@ -131,7 +136,7 @@ function drawShop()
   var upgradeShop = new createjs.Container();
   var visualUpgradeShop = new createjs.Shape();
 
-  var shopWidth = stageCanvas.canvas.width - iMapSize - iMapOffsetX;
+  var shopWidth = upgradeShopWidth + buildingShopWidth;
   var shopHeight = stageCanvas.canvas.height;
 
   // Instantiate 'general' shop
@@ -149,10 +154,10 @@ function drawShop()
   buildingShop.x = iMapOffsetX + iMapSize + upgradeShopWidth;
   buildingShop.y = 0;
 
-  instantiateBuildingButtons(buildingShop, shopWidth - upgradeShopWidth); // Create shop buttons and attach the relevant events
+  instantiateBuildingButtons(buildingShop, buildingShopWidth); // Create shop buttons and attach the relevant events
 
       // Instantiate visual background
-  visualBuildingShop.graphics.beginStroke("black").drawRect(0, 0, shopWidth - upgradeShopWidth, shopHeight);
+  visualBuildingShop.graphics.beginStroke("black").drawRect(0, 0, buildingShopWidth, shopHeight);
   buildingShop.addChild(visualBuildingShop);
   stageCanvas.addChild(buildingShop);
 
@@ -175,11 +180,15 @@ function instantiateBuildingButtons(buildingShop, buildingShopWidth)
   var buildingButtonHeight = stageCanvas.canvas.height / numberOfBuildingTypes;
   for (iIndex = 0 ; iIndex < numberOfBuildingTypes ; iIndex++)
   {
-    buildingButton = new createjs.Container(); // Button container
-    buildingButtonVisual = new createjs.Shape(); // Button visual appearance
+    var buildingButton = new createjs.Container(); // Button container
+    var buildingButtonVisual = new createjs.Shape(); // Button visual appearance
+    var buildingButtonTooltip = new createjs.Container();
+    var buildingButtonTooltipText = new createjs.Text();
+    var buildingButtonTooltipBox = new createjs.Shape();
 
     // Manage text appearance / placement
     buildingButtonText = new createjs.Text(buildingTypes[iIndex], "20px Arial", "black");
+    buildingButtonText.text += "\nCost: " + buildingCosts[iIndex] + " toys";
     buildingButtonText.textAlign = "center";
     buildingButtonText.x = buildingShopWidth / 2;
     buildingButtonText.y = buildingButtonHeight / 2;
@@ -190,19 +199,33 @@ function instantiateBuildingButtons(buildingShop, buildingShopWidth)
     buildingButton.y = iIndex * buildingButtonHeight;
     buildingButton.x = 0;
 
+    // Sets container properties
+    buildingButton.type = "building";
+
+    // Initial tooltip Setup
+    buildingButtonTooltipBox.graphics.beginStroke("black").beginFill("#F0F0F0").drawRect(0, 0, 400, 100);
+
+    buildingButtonTooltipText.name = "text";
+    buildingButtonTooltipText.font = "16px Arial";
+    buildingButtonTooltipText.x = 5;
+    buildingButtonTooltipText.y = 10;
+
+    buildingButtonTooltip.addChild(buildingButtonTooltipBox);
+    buildingButtonTooltip.addChild(buildingButtonTooltipText);
+
     // Sets the visual portion of the container to be the 'clickable' area
     buildingButton.addChild(buildingButtonVisual);
     buildingButton.hitArea = buildingButtonVisual;
 
     buildingButton.strBuildingType = buildingTypes[iIndex];
-    addButtonEvent(buildingButton, iIndex); // Add purchase event to click
+    addButtonEvents(buildingButton, iIndex, buildingButtonTooltip, buildingShopWidth, buildingButtonHeight); // Add purchase event to click
 
     buildingButton.addChild(buildingButtonText);
     buildingShop.addChild(buildingButton);
   }
 }
 
-function addButtonEvent(buildingButton, iIndex)
+function addButtonEvents(buildingButton, iIndex, buttonTooltip, buttonWidth, buttonHeight)
 {
   buildingButton.iIndex = iIndex; // Index of the button
   buildingButton.on("click", function(event)
@@ -223,7 +246,48 @@ function addButtonEvent(buildingButton, iIndex)
     pressobject = null;
   }
 });
+
+// Displays tooltip if cursor remains stationary for 2 second
+buildingButton.on("mouseover", function(event)
+{
+  setTimeout(displayShopButtonTooltip, 2000, stageCanvas.mouseX, stageCanvas.mouseY, buildingButton, buttonTooltip, buttonWidth, buttonHeight);
+});
+
+buildingButton.on("mouseout", function(event)
+{
+  stageCanvas.removeChild(buttonTooltip);
+});
 }
+
+
+function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonWidth, buttonHeight)
+{
+  var stageX = stageCanvas.mouseX;
+  var stageY = stageCanvas.mouseY;
+  if (button.type == "building")
+  {
+    point = button.globalToLocal(stageX, stageY);
+      // Determines whether the mouse has moved and whether the user has moved to a different location
+    if (Math.abs(originalX - stageX) < buttonWidth / 2 && Math.abs(originalY - stageY) < buttonHeight / 2
+      && Math.abs(button.x - point.x) < buttonWidth && Math.abs(button.y - point.y) < buttonHeight
+      && (stageX >= button.x) && (stageY >= button.y) )
+    {
+      // Updates tooltip text
+      tooltip.getChildByName("text").text = buildingTypes[button.iIndex] + "\n";
+      tooltip.getChildByName("text").text += "Cost: " + buildingCosts[button.iIndex] + " toys\n";
+      tooltip.getChildByName("text").text += buildingDescriptions[button.iIndex] + "\n";
+      tooltip.getChildByName("text").text += "Owned: " + numberOfBuildingsOwned[button.iIndex] + "\n";
+      tooltip.getChildByName("text").text += "Generating: " + incomeGeneratedPerBuildingType[button.iIndex] + " toys\n";
+      // Adds tooltip to stage offset from the current position
+      tooltip.x = stageX;
+      tooltip.y = stageY;
+      stageCanvas.addChild(tooltip);
+    }
+  }
+
+}
+
+// LOADING CODE - Loads buildings and upgrades at game initialization
 
 function loadAllBuildings()
 {
@@ -249,7 +313,7 @@ function loadAllBuildings()
   }
 }
 
-// START OF BUILDING / MAP CODE //
+// START OF BUILDING
 
 // Creates a building to be purchased
 function createBuilding(iIndexOfBuildingType, colour)
@@ -381,6 +445,7 @@ function drawBuildingForMapPlacement(building, size)
   return building;
 }
 
+// END OF BUILDING CODE
 
 // Builds a grid tile for use in the map
 function getGridSquare(x, y, width, height, iType)
@@ -423,7 +488,7 @@ function getGridSquare(x, y, width, height, iType)
   tooltipText.y = 15;
 
   var tooltipBox = new createjs.Shape();
-  tooltipBox.graphics.beginStroke("black").beginFill("#F0F0F0").drawRect(0, 0, 200, 80);
+  tooltipBox.graphics.beginStroke("black").beginFill("#F0F0F0").drawRect(0, 0, 200, 100);
 
   tileTooltip.addChild(tooltipBox);
   tileTooltip.addChild(tooltipText);
@@ -581,12 +646,11 @@ function buildingPlacementEvent(gridSquare)
 // Displays a tooltip for a tile, given that it has been hovered over for an appropriate amount of time
 function displayTileTooltip(originalX, originalY, gridSquare, tileTooltip)
 {
-  var point = gridSquare.globalToLocal(stageCanvas.mouseX, stageCanvas.mouseY); // x and y are translated to local coordinates of gridSquare
   var stageX = stageCanvas.mouseX;
   var stageY = stageCanvas.mouseY;
   // Determines whether the mouse has moved and whether the user has moved to a different tile
-  if (Math.abs(originalX - stageX) < 50 && Math.abs(originalY - stageY) < 50
-    && Math.abs(gridSquare.x - stageX) < 100 && Math.abs(gridSquare.y - stageY) < 100
+  if (Math.abs(originalX - stageX) < iBaseTileLength / 2 && Math.abs(originalY - stageY) < iBaseTileLength / 2
+    && Math.abs(gridSquare.x - stageX) < iBaseTileLength && Math.abs(gridSquare.y - stageY) < iBaseTileLength
     && (stageX >= gridSquare.x) && (stageY >= gridSquare.y) )
   {
     // Updates tooltip text
@@ -595,7 +659,10 @@ function displayTileTooltip(originalX, originalY, gridSquare, tileTooltip)
     if (gridSquare.isBuilding == true)
     {
       tileTooltip.getChildByName("text").text += "Building: " + buildingTypes[gridSquare.buildingType];
-      tileTooltip.getChildByName("text").text += "\nCapacity: " + gridSquare.getChildByName("building").currentPenguins + " / " + gridSquare.getChildByName("building").maxPenguins;
+      tileTooltip.getChildByName("text").text += "\nCapacity: " + gridSquare.getChildByName("building").currentPenguins + " / " + gridSquare.getChildByName("building").maxPenguins + "\n";
+      tileTooltip.getChildByName("text").text += "Generating: " +
+       (gridSquare.getChildByName("building").currentPenguins / gridSquare.getChildByName("building").maxPenguins)
+        * gridSquare.getChildByName("building").type + " toys";
     }
     // Adds tooltip to stage offset from the current position
     tileTooltip.x = stageCanvas.mouseX;
