@@ -570,17 +570,7 @@ function drawBuildingForMapPlacement(building, size)
   return building;
 }
 
-function animate() {
-}
 
-function preload() {
-}
-
-function create() {
-}
-
-function update() {
-}
 
 
 // GAME LOGIC //
