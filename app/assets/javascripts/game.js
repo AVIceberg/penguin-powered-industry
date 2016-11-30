@@ -4,9 +4,11 @@
 // Initializes game logic and the map
 window.onload=function(){ createjsinit(); initialize();  };
 
+//
 var pressobject; // Tracks the building currently being placed
 var stageCanvas; // The primary canvas (Map)
 var temporaryCursor;
+var shop;
 
 var numberOfBuildingTypes = 3;
 
@@ -19,12 +21,23 @@ var buildingCosts = [100, 500, 2500];
 var buildingIncome = [5, 10, 100];
 var buildingSize = [1, 1, 2]; // Size of each building (i x i) on the grid
 var buildingImages = ["brown", "grey", "#FFFF88"];
-var tilesHoveredOver = [[null, null, null], [null, null, null], [null, null, null]];
-
-
 var penguinCapacity = [20, 100, 1000];
 
-var shop;
+// Income-Handling Variables
+var incomeGeneratedPerBuildingType = [0, 0, 0]; // Used to track how much each building type is producing per second
+var buildingTypeMultipliers = [1.0, 1.0, 1.0];  // Tracks current multipliers for each building (affected by upgrades, events)
+var fTotalPassiveIncome = 0.0;                  // Total generated income
+var fClickMultiplier = 1.0;                     // Current multiplier for clicks (affected by upgrades, events)
+var iClickingBase = 1;
+
+// Game Handlers : Manage game logic
+var iSaveInterval = 2;
+var iMapSize = 800;
+var iMapOffsetX = 200;
+var iBaseTileLength = 100;
+
+// Tracks which tiles are currently illuminated / hovered over by a building during placement
+var tilesHoveredOver = [[null, null, null], [null, null, null], [null, null, null]];
 
 function createjsinit(){
   stageCanvas = new createjs.Stage("gamecanvas");
@@ -43,11 +56,12 @@ function createjsinit(){
   createjs.Ticker.addEventListener("tick",tick);
 }
 
-function admin(){
-  
-  if (gon.iadmin == true){
-    
+function admin()
+{
+  if (gon.iadmin == true)
+  {
     document.getElementById("nickname").innerHTML += "<font color='red'>(ADMIN)</font>";
+
     var user_options = document.getElementById("user-options");
     var add10000 = document.createElement("BUTTON");
     add10000.appendChild(document.createTextNode("Add 10000 toys"));
@@ -55,30 +69,22 @@ function admin(){
     var substractminute =document.createElement("BUTTON");
     substractminute.appendChild(document.createTextNode("Substract a minute"));
     substractminute.setAttribute("onclick", "gon.iTimeLeft -= 60;");
+
     user_options.appendChild(add10000);
     user_options.appendChild(substractminute);
-    
-    
-    
-    
-    
-    
   }
-  
-  
-  
 }
 
 // Draws the grid-based map and populates each square with a container
 function drawMap()
 {
   // Draws singular tiles
-  for (x = gon.iMapOffsetX ; x < gon.iMapSize + gon.iMapOffsetX; x = x + gon.iBaseTileLength)
+  for (x = iMapOffsetX ; x < iMapSize + iMapOffsetX; x = x + iBaseTileLength)
   {
-    for (y = 0 ; y < gon.iMapSize ; y = y + gon.iBaseTileLength)
+    for (y = 0 ; y < iMapSize ; y = y + iBaseTileLength)
     {
-      var iType = (gon.strMapSave[y / gon.iBaseTileLength][(x - gon.iMapOffsetX) / gon.iBaseTileLength]); // Read map data to determine what goes here
-      var gridSquare = getGridSquare(x, y, gon.iBaseTileLength, gon.iBaseTileLength, iType); // Fetches a container for the square
+      var iType = (gon.strMapSave[y / iBaseTileLength][(x - iMapOffsetX) / iBaseTileLength]); // Read map data to determine what goes here
+      var gridSquare = getGridSquare(x, y, iBaseTileLength, iBaseTileLength, iType); // Fetches a container for the square
       // Adds the grid tile to the canvas
       stageCanvas.addChild(gridSquare);
       stageCanvas.update();
@@ -90,7 +96,7 @@ function drawClickingArea()
 {
   // Graphics for clicking area
   clickingArea = new createjs.Shape();
-  clickingArea.graphics.beginStroke("black").beginFill("#6666CC").drawRect(0, 0, gon.iMapOffsetX - 5, 200);
+  clickingArea.graphics.beginStroke("black").beginFill("#6666CC").drawRect(0, 0, iMapOffsetX - 5, 200);
 
   // "Click" toy gain event
   clickingArea.on("click", function(event) {
@@ -123,12 +129,12 @@ function drawShop()
   var upgradeShop = new createjs.Container();
   var visualUpgradeShop = new createjs.Shape();
 
-  var shopWidth = stageCanvas.canvas.width - gon.iMapSize - gon.iMapOffsetX;
+  var shopWidth = stageCanvas.canvas.width - iMapSize - iMapOffsetX;
   var shopHeight = stageCanvas.canvas.height;
 
   // Instantiate 'general' shop
       // Instantiate boundaries / positioning
-  shop.x = gon.iMapOffsetX + gon.iMapSize;
+  shop.x = iMapOffsetX + iMapSize;
   shop.y = 0;
 
       // Instantiate visual background
@@ -138,7 +144,7 @@ function drawShop()
 
   // Instantiate building shop
     // Instantiate boundaries / positioning
-  buildingShop.x = gon.iMapOffsetX + gon.iMapSize + upgradeShopWidth;
+  buildingShop.x = iMapOffsetX + iMapSize + upgradeShopWidth;
   buildingShop.y = 0;
 
   instantiateBuildingButtons(buildingShop, shopWidth - upgradeShopWidth); // Create shop buttons and attach the relevant events
@@ -214,12 +220,12 @@ function loadAllBuildings()
 {
   var iOffset = 5; // Prevents objects that share boundaries from being selected erroneously
   // Searches through to find any existent buildings and places them as appropriate
-  for (x = 0 ; x < gon.iMapSize; x = x + gon.iBaseTileLength)
+  for (x = 0 ; x < iMapSize; x = x + iBaseTileLength)
   {
-    for (y = 0 ; y < gon.iMapSize ; y = y + gon.iBaseTileLength)
+    for (y = 0 ; y < iMapSize ; y = y + iBaseTileLength)
     {
       // Note: X, Y reversed from map data
-      var iType = (gon.strBuildingMapSave[x / gon.iBaseTileLength][y / gon.iBaseTileLength]); // Read map data to determine what goes here
+      var iType = (gon.strBuildingMapSave[x / iBaseTileLength][y / iBaseTileLength]); // Read map data to determine what goes here
 
       if (iType != "-1")
       {
@@ -227,7 +233,7 @@ function loadAllBuildings()
 
         pressobject = createBuilding(iType, colour);
 
-        gridSquare = stageCanvas.getObjectUnderPoint(x + gon.iMapOffsetX + iOffset, y, 0);
+        gridSquare = stageCanvas.getObjectUnderPoint(x + iMapOffsetX + iOffset, y, 0);
         gridSquare.dispatchEvent("click");
       }
     }
@@ -269,12 +275,11 @@ function buildingEventSetup(building)
       pressobject.currentPenguins = event.target.currentPenguins;
       pressobject.allowedTerrain = event.target.allowedTerrain;
       pressobject.placement = event.target.placement;
-      
-      if ( event.target.parent !== null){
+
+      if ( event.target.parent !== null)
+      {
         event.target.parent.removeChild(event.target);
       }
-
-      
     }
   });
 }
@@ -395,7 +400,7 @@ function getGridSquare(x, y, width, height, iType)
     if ( (pressobject != null) && (gridSquare.hovering == false) && gridSquare.hitTest(point.x, point.y) )
     {
       gridSquare.hovering = true;
-      tilesHoveredOver = getTiles(gridSquare);
+      tilesHoveredOver = getTilesByCursor();
       //window.alert(tilesHoveredOver);
       for (i = 0 ; i < pressobject.size ; i++)
       {
@@ -462,7 +467,6 @@ function buildingPlacementEvent(gridSquare)
       // Remove custom cursor
       stageCanvas.removeEventListener("mouseover");
       stageCanvas.removeChild(temporaryCursor);
-
       var gridTilesAffected = getTiles(gridSquare) // Collect affected containers and check for validity
       var validLocation = validateTiles(gridTilesAffected);
       // If the location is valid, place the building
@@ -480,7 +484,7 @@ function buildingPlacementEvent(gridSquare)
             }
           }
           // Create the new container
-          gridSquare = getGridSquare(gridSquare.x, gridSquare.y, gon.iBaseTileLength * pressobject.size, gon.iBaseTileLength * pressobject.size, 1);
+          gridSquare = getGridSquare(gridSquare.x, gridSquare.y, iBaseTileLength * pressobject.size, iBaseTileLength * pressobject.size, 1);
           gridSquare.isBuilding = true;
           stageCanvas.addChild(gridSquare);
         }
@@ -488,11 +492,12 @@ function buildingPlacementEvent(gridSquare)
         {
           gridSquare.isBuilding = true;
         }
-
         // Draw building, place it in the grid, and update income as necessary
         pressobject = drawBuildingForMapPlacement(pressobject, pressobject.size);
         gridSquare.addChild(pressobject.clone());
-        gon.strBuildingMapSave[(gridSquare.x - gon.iMapOffsetX) / gon.iBaseTileLength][gridSquare.y / gon.iBaseTileLength] = pressobject.type;
+        gon.strBuildingMapSave[(gridSquare.x - iMapOffsetX) / iBaseTileLength][gridSquare.y / iBaseTileLength] = pressobject.type;
+        //fTotalPassiveIncome += (pressobject.currentPenguins / penguinCapacity[pressobject.type]) * buildingIncome[pressobject.type];
+        // Note for Godwin: Remove this and decomment previous line of code once penguins are implemented. Also see the clock code for another change
         gon.iPassiveIncome += buildingIncome[pressobject.type];
         gridSquare.dispatchEvent("mouseout");
         pressobject = null;
@@ -509,7 +514,7 @@ function buildingPlacementEvent(gridSquare)
   });
 }
 
-// Grabs all tiles relevant to the building being placed, checks their validity, and adds them to an array
+// Grabs all tiles relevant to the building being placed and adds them to an array
 function getTiles(gridSquare)
 {
   gridTilesAffected = [[null, null, null], [null, null, null], [null, null, null]];
@@ -519,7 +524,32 @@ function getTiles(gridSquare)
     for (j = 0 ; j < pressobject.size ; j++)
     {
       // Get the container and add it to an array
-      tile = stageCanvas.getObjectUnderPoint(gridSquare.x + (gon.iBaseTileLength * i) + iOffset, gridSquare.y + (gon.iBaseTileLength * j) + iOffset, 2);
+      tile = stageCanvas.getObjectUnderPoint(gridSquare.x + (iBaseTileLength * i) + iOffset, gridSquare.y + (iBaseTileLength * j) + iOffset, 2);
+
+      if (tile.hasEventListener("mouseover"))
+      {
+            gridTilesAffected[i][j] = tile;
+      }
+      else
+      {
+          gridTilesAffected[i][j] = tile.parent;
+      }
+    }
+  }
+  return gridTilesAffected;
+}
+
+// Grabs all tiles relevant to the building being placed according to the cursor(!), rather than gridSquare
+function getTilesByCursor()
+{
+  gridTilesAffected = [[null, null, null], [null, null, null], [null, null, null]];
+  var iOffset = 5; // Prevents the program from 'catching' on a container that shares a boundary with our desired one
+  for (i = 0 ; i < pressobject.size ; i++)
+  {
+    for (j = 0 ; j < pressobject.size ; j++)
+    {
+      // Get the container and add it to an array
+      tile = stageCanvas.getObjectUnderPoint(stageCanvas.mouseX + (iBaseTileLength * i), stageCanvas.mouseY + (iBaseTileLength * j), 2);
 
       if (tile.hasEventListener("mouseover"))
       {
@@ -587,9 +617,7 @@ function initialize()
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
 function incrementToys()
 {
-  var iBase = 1;
-
-  gon.iToys = gon.iToys + iBase * gon.fClickMultiplier;
+  gon.iToys = gon.iToys + iClickingBase * fClickMultiplier;
   updateToys();
 }
 
@@ -624,14 +652,13 @@ $(document).on("click", "#save-button", callSave);
 var errorClearInterval = 0;               //initialization
 var eventClearInterval = 0;               //initialization
 function updateClock(time_left) {
-  
+
   function updateClock2() {
-    
+
     if (typeof gon.iTimeLeft !== 'undefined'){
       time_left = gon.iTimeLeft;
     }
-    
-    
+
     if(time_left <= 1) {
       clearInterval(timeinterval);
       if(gon.iRequiredToys < gon.iToys) {
@@ -656,12 +683,13 @@ function updateClock(time_left) {
       eventClearInterval = 0;
     }
     // Automatic Save
-    if((time_left % gon.iSaveInterval == 0) && (time_left % 60 == 0)) {
+    if(((time_left / 60) % iSaveInterval == 0) && (time_left % 60 == 0)) {
       callSave();
     }
     errorClearInterval = errorClearInterval + 1;
     time_left = time_left - 1;
-    gon.iToys += gon.iPassiveIncome;
+    gon.iToys += gon.iPassiveIncome; // Remove this line of code once penguins are implemented
+    // gon.iToys += fTotalPassiveIncome;
     updateToys();
     gon.iTimeLeft = time_left;
     document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
