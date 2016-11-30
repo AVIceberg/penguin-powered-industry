@@ -92,6 +92,7 @@ function drawMap()
   }
 }
 
+// Draws the clicking area and adds the 'click' event
 function drawClickingArea()
 {
   // Graphics for clicking area
@@ -104,6 +105,7 @@ function drawClickingArea()
     {
       // Refund the building
       refundBuildingPurchase(pressobject.type);
+      stageCanvas.removeChild(temporaryCursor);
       pressobject = null;
     }
     else
@@ -213,6 +215,13 @@ function addButtonEvent(buildingButton, iIndex)
       building.dispatchEvent("click");
     }
   }
+  else
+  {
+    // Refund the building
+    refundBuildingPurchase(pressobject.type);
+    stageCanvas.removeChild(temporaryCursor);
+    pressobject = null;
+  }
 });
 }
 
@@ -238,6 +247,29 @@ function loadAllBuildings()
       }
     }
   }
+}
+
+// START OF BUILDING / MAP CODE //
+
+// Creates a building to be purchased
+function createBuilding(iIndexOfBuildingType, colour)
+{
+  // Builds building graphic
+  var building = new createjs.Shape();
+  building.graphics.beginStroke("black").beginFill(colour)
+  .drawCircle(50, 50, 50);
+
+  // Sets building properties and events
+  building.type = iIndexOfBuildingType;
+
+  building.maxPenguins = penguinCapacity[iIndexOfBuildingType]; // Sets the number of penguins the building can hold
+  building.currentPenguins = 0;
+  building.size = buildingSize[iIndexOfBuildingType];
+  building.allowedTerrain = terrainTypesPermitted[iIndexOfBuildingType];
+  building.name = "building";
+  buildingEventSetup(building);
+
+  return building;
 }
 
 // Adds relevant events to a building object
@@ -274,7 +306,7 @@ function buildingEventSetup(building)
       pressobject.maxPenguins = event.target.maxPenguins;
       pressobject.currentPenguins = event.target.currentPenguins;
       pressobject.allowedTerrain = event.target.allowedTerrain;
-      pressobject.placement = event.target.placement;
+      pressobject.name = event.target.name;
 
       if ( event.target.parent !== null)
       {
@@ -282,10 +314,6 @@ function buildingEventSetup(building)
       }
     }
   });
-}
-
-function tick() {
-    stageCanvas.update();
 }
 
 // Purchases a building of the given building type
@@ -301,27 +329,6 @@ function purchaseBuilding(strBuildingType, iIndex)
     var building = createBuilding(iIndex, colour);
     return building;
   }
-}
-
-// Creates a building to be purchased
-function createBuilding(iIndexOfBuildingType, colour)
-{
-  // Builds building graphic
-  var building = new createjs.Shape();
-  building.graphics.beginStroke("black").beginFill(colour)
-  .drawCircle(50, 50, 50);
-
-  // Sets building properties and events
-  building.type = iIndexOfBuildingType;
-
-  building.maxPenguins = penguinCapacity[iIndexOfBuildingType]; // Sets the number of penguins the building can hold
-  building.currentPenguins = 0;
-  building.size = buildingSize[iIndexOfBuildingType];
-  building.allowedTerrain = terrainTypesPermitted[iIndexOfBuildingType];
-
-  buildingEventSetup(building);
-
-  return building;
 }
 
 // Gets the appropriate building image
@@ -358,6 +365,22 @@ function deductCost(iIndexOfBuildingType)
   return hasEnoughToys;
 }
 
+// Refunds the building purchase when the user decides to cancel it by clicking in an invalid location
+function refundBuildingPurchase(iType)
+{
+  gon.iToys += buildingCosts[iType];
+}
+
+// Redraws the building with the proper coordinates to fit into its grid tile
+function drawBuildingForMapPlacement(building, size)
+{
+  var colour = getBuildingImage(building.type); // Green == Error
+  building.graphics.clear("White");
+
+  building.graphics.beginFill(colour).drawCircle(50 * size, 50 * size, 50 * size);
+  return building;
+}
+
 
 // Builds a grid tile for use in the map
 function getGridSquare(x, y, width, height, iType)
@@ -366,6 +389,7 @@ function getGridSquare(x, y, width, height, iType)
   var visualEffect = new createjs.Shape();   // Visual effect upon hover-over
   var visualEffectProhibited = new createjs.Shape(); // Visual effect upon hover-over of unusable land
   var visualTerrain = new createjs.Shape();  // Terrain (I.e., visual appearance)
+  var tileTooltip = new createjs.Container(); // Container for tooltip elements
   gridSquare.x = x;
   gridSquare.y = y;
   //gridSquare.setBounds(x * width, y * height, width, height);
@@ -386,22 +410,45 @@ function getGridSquare(x, y, width, height, iType)
   gridSquare.height = height;
   gridSquare.isBuilding = false;  // Tracks whether the tile contains a building
   gridSquare.terrainType = iType; // Stores terrain type for building logic
-  gridSquare.hovering = false;
+  gridSquare.hovering = false;    // Determines whether the user's mouse is hovering over the tile during certain events
+  gridSquare.buildingType = "None"; // Tracks the building type currently occupying it
 
-  // GRID TILE HOVER-OVER EVENTS
+  // Sets initial tile tooltip visuals
+  var tooltipText = new createjs.Text();
+  tooltipText.text = "Terrain Type: " + buildingTypes[gridSquare.terrainType] + "\n";
+  tooltipText.text += "Building: " + gridSquare.buildingType;
+  tooltipText.name = "text";
+  tooltipText.font = "18px Arial";
+  tooltipText.x = 10;
+  tooltipText.y = 15;
 
-  // To-Do: Display info on current building (Tooltips)
+  var tooltipBox = new createjs.Shape();
+  tooltipBox.graphics.beginStroke("black").beginFill("#F0F0F0").drawRect(0, 0, 200, 80);
+
+  tileTooltip.addChild(tooltipBox);
+  tileTooltip.addChild(tooltipText);
+
+  // TILE EVENTS : Initializes building placement events and hover events
+
+  mouseHoverEvents(gridSquare, visualEffect, visualEffectProhibited, tileTooltip);
+  buildingPlacementEvent(gridSquare);
+  return gridSquare;
+}
+
+// EVENTS FOR GRID TILES
+
+function mouseHoverEvents(gridSquare, visualEffect, visualEffectProhibited, tileTooltip)
+{
+  // On mouseover, light the relevant tiles
   gridSquare.on("mouseover", function(event)
   {
     var point = gridSquare.globalToLocal(stageCanvas.mouseX, stageCanvas.mouseY);
-
-    // If user is placing a building, light up relevant tiles persuant to user's choice
-    // DISABLED: BUG - Will fix Monday
+    setTimeout(displayTileTooltip, 2000, stageCanvas.mouseX, stageCanvas.mouseY, gridSquare, tileTooltip); // Displays tooltip if cursor remains stationary for 2 second
+    // If user is placing an object, light up relevant tiles persuant to user's choice (Called once on first call)
     if ( (pressobject != null) && (gridSquare.hovering == false) && gridSquare.hitTest(point.x, point.y) )
     {
       gridSquare.hovering = true;
       tilesHoveredOver = getTilesByCursor();
-      //window.alert(tilesHoveredOver);
       for (i = 0 ; i < pressobject.size ; i++)
       {
         for (j = 0 ; j < pressobject.size ; j++)
@@ -410,15 +457,16 @@ function getGridSquare(x, y, width, height, iType)
         }
       }
     }
+    // Used to handle all calls made in the above statement
     else if (pressobject != null)
     {
       if (gridSquare.isBuilding == true || terrainTypesPermitted[pressobject.type].indexOf(terrainTypes[gridSquare.terrainType]) < 0)
       {
-        gridSquare.addChild(visualEffectProhibited);
+        gridSquare.addChild(visualEffectProhibited); // Red
       }
       else
       {
-          gridSquare.addChild(visualEffect);
+          gridSquare.addChild(visualEffect); // Green
       }
     }
     // Else, light all non-water tiles green, and water tiles red
@@ -431,7 +479,7 @@ function getGridSquare(x, y, width, height, iType)
       gridSquare.addChild(visualEffectProhibited);
     }
   });
-
+  // When the mouse moves out of a tile, remove all light-up effects
   gridSquare.on("mouseout", function(event)
    {
      var point = gridSquare.globalToLocal(stageCanvas.mouseX, stageCanvas.mouseY);
@@ -451,11 +499,9 @@ function getGridSquare(x, y, width, height, iType)
      {
        gridSquare.removeChild(visualEffect);
        gridSquare.removeChild(visualEffectProhibited);
+       stageCanvas.removeChild(tileTooltip);
      }
   });
-
-  buildingPlacementEvent(gridSquare);
-  return gridSquare;
 }
 
 // An event for each grid tile that activates when a user tries to place a building on the map
@@ -467,6 +513,7 @@ function buildingPlacementEvent(gridSquare)
       // Remove custom cursor
       stageCanvas.removeEventListener("mouseover");
       stageCanvas.removeChild(temporaryCursor);
+
       var gridTilesAffected = getTiles(gridSquare) // Collect affected containers and check for validity
       var validLocation = validateTiles(gridTilesAffected);
       // If the location is valid, place the building
@@ -492,9 +539,22 @@ function buildingPlacementEvent(gridSquare)
         {
           gridSquare.isBuilding = true;
         }
-        // Draw building, place it in the grid, and update income as necessary
+        // Draw building for proper placement in tile
         pressobject = drawBuildingForMapPlacement(pressobject, pressobject.size);
-        gridSquare.addChild(pressobject.clone());
+
+        // Create a new object of pressobject so pressobject can be cleared freely.
+        newCopyOfBuilding = pressobject.clone(true);
+        newCopyOfBuilding.name = "building";
+        newCopyOfBuilding.type = pressobject.type
+
+        newCopyOfBuilding.size = pressobject.size;
+        newCopyOfBuilding.maxPenguins = pressobject.maxPenguins;
+        newCopyOfBuilding.currentPenguins = pressobject.currentPenguins;
+        newCopyOfBuilding.allowedTerrain = pressobject.allowedTerrain;
+
+        // Add the new building to the tile and increment income appropriately
+        gridSquare.addChild(newCopyOfBuilding);
+        gridSquare.buildingType = pressobject.type;
         gon.strBuildingMapSave[(gridSquare.x - iMapOffsetX) / iBaseTileLength][gridSquare.y / iBaseTileLength] = pressobject.type;
         //fTotalPassiveIncome += (pressobject.currentPenguins / penguinCapacity[pressobject.type]) * buildingIncome[pressobject.type];
         // Note for Godwin: Remove this and decomment previous line of code once penguins are implemented. Also see the clock code for another change
@@ -512,6 +572,36 @@ function buildingPlacementEvent(gridSquare)
       }
     }
   });
+}
+
+// END OF EVENTS FOR GRID TILES
+// TILE HELPER METHODS : Used during placement and hover-over events to get a collection of tiles and validate them
+//                       or called during events to add tooltips
+
+// Displays a tooltip for a tile, given that it has been hovered over for an appropriate amount of time
+function displayTileTooltip(originalX, originalY, gridSquare, tileTooltip)
+{
+  var point = gridSquare.globalToLocal(stageCanvas.mouseX, stageCanvas.mouseY); // x and y are translated to local coordinates of gridSquare
+  var stageX = stageCanvas.mouseX;
+  var stageY = stageCanvas.mouseY;
+  // Determines whether the mouse has moved and whether the user has moved to a different tile
+  if (Math.abs(originalX - stageX) < 50 && Math.abs(originalY - stageY) < 50
+    && Math.abs(gridSquare.x - stageX) < 100 && Math.abs(gridSquare.y - stageY) < 100
+    && (stageX >= gridSquare.x) && (stageY >= gridSquare.y) )
+  {
+    // Updates tooltip text
+    tileTooltip.getChildByName("text").text = "Terrain Type: " + terrainTypes[gridSquare.terrainType] + "\n";
+
+    if (gridSquare.isBuilding == true)
+    {
+      tileTooltip.getChildByName("text").text += "Building: " + buildingTypes[gridSquare.buildingType];
+      tileTooltip.getChildByName("text").text += "\nCapacity: " + gridSquare.getChildByName("building").currentPenguins + " / " + gridSquare.getChildByName("building").maxPenguins;
+    }
+    // Adds tooltip to stage offset from the current position
+    tileTooltip.x = stageCanvas.mouseX;
+    tileTooltip.y = stageCanvas.mouseY;
+    stageCanvas.addChild(tileTooltip);
+  }
 }
 
 // Grabs all tiles relevant to the building being placed and adds them to an array
@@ -583,35 +673,22 @@ function validateTiles(gridTilesAffected)
   return validLocation;
 }
 
+// END OF TILE HELPER METHODS
 
-// Refunds the building purchase when the user decides to cancel it by clicking in an invalid location
-function refundBuildingPurchase(iType)
-{
-  gon.iToys += buildingCosts[iType];
-}
-
-// Redraws the building with the proper coordinates to fit into its grid tile
-function drawBuildingForMapPlacement(building, size)
-{
-  var colour = getBuildingImage(building.type); // Green == Error
-  building.graphics.clear("White");
-
-  building.graphics.beginFill(colour).drawCircle(50 * size, 50 * size, 50 * size);
-  return building;
-}
-
+// Non-functional method -- deprecated?
 function animate() {
 }
-
 function preload() {
 }
-
 function create() {
 }
-
 function update() {
 }
 
+// Updates the canvas : Currently set to run 40x / second
+function tick() {
+    stageCanvas.update();
+}
 
 // GAME LOGIC //
 // Initializes all necessary JS variables and adds required events
