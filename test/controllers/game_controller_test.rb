@@ -29,7 +29,7 @@ class GameControllerTest < ActionController::TestCase
   test "newly created building map save" do
     session[:id] = users(:Cat).id
     building = users(:Cat).building_map
-    get :save, leveledUp: "false", max: users(:Cat).max, toys: users(:Cat).toys, time_left: users(:Cat).timeleft, map: users(:Cat).map.to_json, building_map: building.to_json
+    get :save, upgradestate: users(:Cat).upgradestate, max: users(:Cat).max, toys: users(:Cat).toys, time_left: users(:Cat).timeleft, map: users(:Cat).map.to_json, building_map: building.to_json
     assert_response :success
     count = 0
     (0..7).each do |i|
@@ -40,6 +40,7 @@ class GameControllerTest < ActionController::TestCase
       end
     end
     assert_equal count, 0
+    
     
   end
 
