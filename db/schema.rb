@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161130232044) do
+ActiveRecord::Schema.define(version: 20161202200552) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -38,7 +38,6 @@ ActiveRecord::Schema.define(version: 20161130232044) do
     t.integer  "timeleft"
     t.integer  "map",                       default: [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 3, 1, 1, 1, 1], [1, 1, 3, 2, 3, 1, 1, 1], [1, 1, 3, 2, 3, 3, 3, 3], [1, 1, 3, 2, 2, 2, 2, 2], [1, 1, 2, 2, 3, 3, 3, 3]],                                                                                                                                                                                                              array: true
     t.string   "building_map",              default: [["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"], ["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"], ["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"], ["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"], ["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"], ["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"], ["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"], ["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"]],              array: true
-    t.integer  "upgradestate",              default: 0
   end
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree

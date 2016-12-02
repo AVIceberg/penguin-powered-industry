@@ -12,13 +12,12 @@ var stageCanvas; // The primary canvas (Map)
 var temporaryCursor; // Holds the object being moved across the map
 var shop; // General shop container (Should probably be refactored out)
 
-var numberOfBuildingTypes = 3;
-
 var terrainTypes = ["Invalid", "Tundra", "Water", "Shoreline"];
 var terrainColours = ["Green", "White", "#89cff0", "White"];
 var terrainTypesPermitted = [["Tundra", "Shoreline"], ["Tundra", "Shoreline"], ["Tundra", "Shoreline"]];
 
 // Building variables, handlers : Handle building visuals and logic
+var numberOfBuildingTypes = 3;
 var buildingTypes = ["Labour Camp", "Toy Mine", "Factory"];
 var buildingDescriptions = ["A nice, happy place to get some work done.", "Beneath the earth lie treasures aplenty...",
                             "The grinding of gears can be heard within."];
@@ -38,10 +37,13 @@ var fClickMultiplier = 1.0;                     // Current multiplier for clicks
 var iClickingBase = 1;
 
 // Upgrade Handlers : Manage upgrade descriptions and logic
+var numberOfUpgrades = 3;
 var upgradeNames = ["Upgrade #1", "Upgrade #2", "Upgrade #3"];
 var upgradeDescriptions = ["Description for upgrade #1", "Description for upgrade #2", "Description for upgrade #3"];
 var upgradeCost = [500, 800, 10000];
-var upgradePositionHelper = [0, 0, 0, 0, 0, 0, 0, 0]; // Tracks which positions are full in the upgrade shop
+// First Value refers to the building they alter. -1 == all buildings; -2 == clicking
+var upgradeType = [[-2, 0.2], [0, 0.1], [-1, 0.1]];
+var upgradeShopSlotHelper = [null, null, null, null, null, null, null, null];
 
 // Game Handlers : Manage game logic
 var iSaveInterval = 2;
@@ -178,6 +180,7 @@ function drawShop()
 
   visualUpgradeShop.graphics.beginStroke("black").drawRect(0, 0, upgradeShopWidth, shopHeight);
   upgradeShop.addChild(visualUpgradeShop);
+  populateUpgradeShop(upgradeShop);
   stageCanvas.addChild(upgradeShop);
 
   // Enables events for children of each container
@@ -628,7 +631,7 @@ function buildingPlacementEvent(gridSquare)
         gridSquare.addChild(newCopyOfBuilding);
         gridSquare.buildingType = pressobject.type;
         gon.strBuildingMapSave[(gridSquare.x - iMapOffsetX) / iBaseTileLength][gridSquare.y / iBaseTileLength] = pressobject.type;
-        //fTotalPassiveIncome += (pressobject.currentPenguins / penguinCapacity[pressobject.type]) * buildingIncome[pressobject.type];
+        //fTotalPassiveIncome += (pressobject.currentPenguins / penguinCapacity[pressobject.type]) * buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
         // Note for Godwin: Remove this and decomment previous line of code once penguins are implemented. Also see the clock code for another change
         gon.iPassiveIncome += buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
         numberOfBuildingsOwned[pressobject.type]++;
@@ -750,6 +753,102 @@ function validateTiles(gridTilesAffected)
 
 // END OF TILE HELPER METHODS
 
+// START OF UPGRADES : Handles the creation, purchase, and logic of upgrades
+
+// Instantiates an upgrade based upon its index within the relevant helpers
+function createUpgrade(iIndex)
+{
+  upgrade = new createjs.Shape();
+  upgrade.graphics.beginFill("orange").drawPolyStar(50, 50 + iIndex * 50, 25, 3, 0, -90); // PLACEHOLDER DISPLAY
+  upgrade.type = upgradeType[iIndex][0];
+  return upgrade;
+}
+
+// Populates the upgrade shop with all upgrades
+function populateUpgradeShop(upgradeShop)
+{
+  for (i = 0 ; i < numberOfUpgrades ; i++)
+  {
+    var upgrade = createUpgrade(i);
+    upgradeShopSlotHelper[i] = upgrade;
+    upgrade.position = i;
+    upgradeEventHandler(upgrade, i, upgradeShop);
+    upgradeShop.addChild(upgrade);
+  }
+}
+
+// Adds the 'click' event handler to purchase an upgrade
+function upgradeEventHandler(upgrade, iIndex, upgradeShop)
+{
+  upgrade.on("click", function(event)
+  {
+    bSuccess = purchaseUpgrade(upgrade, iIndex);
+    if (bSuccess == true)
+    {
+      updateUpgradePositions(upgradeShop, upgrade);
+      upgradeShop.removeChild(upgrade);
+      gon.iUpgradeStates[iIndex] = 1;
+
+      // Activates the upgrade accordingly
+      var multiplerAmount = 1.0 + upgradeType[iIndex][1];
+
+      if (upgrade.type == -1)
+      {
+        for (i = 0 ; i < numberOfBuildingTypes ; i++)
+        {
+          buildingTypeMultipliers[i] *= multiplerAmount;
+        }
+      }
+      else if (upgrade.type == -2)
+      {
+        fClickMultiplier *= multiplerAmount;
+      }
+      else
+      {
+        buildingTypeMultipliers[upgrade.type] *= multiplerAmount;
+      }
+    }
+    else
+    {
+      var errorMessage = document.getElementById("error");
+      errorMessage.innerHTML = "You require " + upgradeCost[iIndex] + " toys to purchase this upgrade!";
+    }
+  });
+}
+
+// If the user has enough toys, the upgrade is purchased
+function purchaseUpgrade(upgrade, iIndex)
+{
+  bSuccess = false;
+  if (gon.iToys >= upgradeCost[iIndex])
+  {
+    gon.iToys = gon.iToys - upgradeCost[iIndex];
+    bSuccess = true;
+  }
+  return bSuccess;
+}
+
+// Fills in the empty spot made when the iIndex-th upgrade is bought
+function updateUpgradePositions(upgradeShop, deletedUpgrade)
+{
+  for (i = deletedUpgrade.position + 1; i < numberOfUpgrades ; i++)
+  {
+    var upgrade = upgradeShopSlotHelper[i];
+    if (upgrade !== null)
+    {
+      upgradeShop.removeChild(upgrade);
+      upgrade.graphics.clear("White"); // Wipe the upgrade graphic
+      upgrade.graphics.beginFill("orange").drawPolyStar(50, 50 + (i - 1) * 50, 25, 3, 0, -90); // PLACEHOLDER DISPLAY
+      upgrade.position = upgrade.position - 1;
+      window.alert(upgrade.position);
+      upgradeShopSlotHelper[i - 1] = upgrade;
+      upgradeShopSlotHelper[i] = null;
+      upgradeShop.addChild(upgrade);
+    }
+  }
+}
+// END OF UPGRADES
+
 // Non-functional method -- deprecated?
 function animate() {
 }
@@ -774,11 +873,10 @@ function initialize()
 
     interval = setInterval(updateClock(gon.iTimeLeft), 1000);
     admin();
-    loadUpgrade();
-
-
+    //loadUpgrade();
 }
 
+/*
 function loadUpgrade(){
 
   for (var i = gon.iUpgradestate; i > 0; i--){
@@ -786,8 +884,6 @@ function loadUpgrade(){
   }
   //It loads upgrades into multiplier.
   updateGrade();
-
-
 }
 function buyUpgrade(){
   buildingTypeMultipliers[0]++;
@@ -841,6 +937,7 @@ function updateGrade(){
   }
 
 }
+*/
 
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
 function incrementToys()
@@ -852,7 +949,7 @@ function incrementToys()
 // Updates the displayed toys on screen
 function updateToys()
 {
-  document.getElementById("toys").innerHTML = gon.iToys + " toys";
+  document.getElementById("toys").innerHTML = gon.iToys.toFixed(2) + " toys";
 }
 
 var callSave = function(){

@@ -14,7 +14,7 @@ class GameController < ApplicationController
       gon.iMapSize = 800 # Width / height of the map
       gon.iMapOffsetX = 200 # Offset left on the canvas for other areas to be added to the left of the map
       gon.iBaseTileLength = 100
-      gon.iUpgradestate = @user.upgradestate
+      gon.iUpgradeStates = [0, 0, 0];
 
       gon.iadmin = @user.admin
 
