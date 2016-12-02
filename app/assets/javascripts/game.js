@@ -164,6 +164,7 @@ function drawShop()
   // Instantiate upgrade shop
   upgradeShop.x = shop.x;
   upgradeShop.y = 0;
+  upgradeShop.name = "upgradeShop";
 
   visualUpgradeShop.graphics.beginStroke("black").drawRect(0, 0, upgradeShopWidth, shopHeight);
   upgradeShop.addChild(visualUpgradeShop);
@@ -623,7 +624,7 @@ function buildingPlacementEvent(gridSquare)
         gon.strBuildingMapSave[(gridSquare.x - iMapOffsetX) / iBaseTileLength][gridSquare.y / iBaseTileLength] = pressobject.type;
         //fTotalPassiveIncome += (pressobject.currentPenguins / penguinCapacity[pressobject.type]) * buildingIncome[pressobject.type];
         // Note for Godwin: Remove this and decomment previous line of code once penguins are implemented. Also see the clock code for another change
-        gon.iPassiveIncome += buildingIncome[pressobject.type];
+        gon.iPassiveIncome += buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
         gridSquare.dispatchEvent("mouseout");
         pressobject = null;
         return;
@@ -742,6 +743,7 @@ function validateTiles(gridTilesAffected)
 
 // END OF TILE HELPER METHODS
 
+<<<<<<< HEAD
 // Non-functional method -- deprecated?
 function animate() {
 }
@@ -751,6 +753,25 @@ function create() {
 }
 function update() {
 }
+=======
+// Refunds the building purchase when the user decides to cancel it by clicking in an invalid location
+function refundBuildingPurchase(iType)
+{
+  gon.iToys += buildingCosts[iType];
+}
+
+// Redraws the building with the proper coordinates to fit into its grid tile
+function drawBuildingForMapPlacement(building, size)
+{
+  var colour = getBuildingImage(building.type); // Green == Error
+  building.graphics.clear("White");
+
+  building.graphics.beginFill(colour).drawCircle(50 * size, 50 * size, 50 * size);
+  return building;
+}
+
+
+>>>>>>> francesco4
 
 // Updates the canvas : Currently set to run 40x / second
 function tick() {
@@ -766,6 +787,72 @@ function initialize()
 
     interval = setInterval(updateClock(gon.iTimeLeft), 1000);
     admin();
+    loadUpgrade();
+    
+    
+}
+
+function loadUpgrade(){
+  
+  for (var i = gon.iUpgradestate; i > 0; i--){
+    buyUpgrade();
+  }
+  //It loads upgrades into multiplier.
+  updateGrade();
+  
+  
+}
+function buyUpgrade(){
+  buildingTypeMultipliers[0]++;
+  buildingTypeMultipliers[1]++;
+  buildingTypeMultipliers[2]++;
+  fClickMultiplier++;
+  gon.iUpgradestate++;
+  gon.iToys -= Math.pow(5, gon.iUpgradestate);
+  updateToys();
+  //The number of toys will be deducted depending on the how many upgrades the user has bought.
+  var info = document.getElementById("error");
+  info.innerHTML = "You have " + gon.iUpgradestate + " upgrades now!";
+  setInterval(function(){
+    info.innerHTML = "";
+  }, 5000);
+}
+function updateGrade(){
+  var numtoys = gon.iToys;
+  var lg = 0;
+  while (numtoys > 0){
+    numtoys -= Math.pow(5, lg + gon.iUpgradestate + 1);
+    if (numtoys > 0){
+      lg++;
+    }
+    
+  }
+  //use 5 to be the log base for upgrade price
+  var upgradeShopContainer = stageCanvas.getChildByName("upgradeShop");
+  
+  if (upgradeShopContainer.numChildren - 1 != lg){
+    while (upgradeShopContainer.numChildren > 1){
+      upgradeShopContainer.removeChildAt(upgradeShopContainer.numChildren - 1);
+      
+    }
+    
+    //clear all the upgrade icons in the shop
+    for ( var i = 0; i < lg; i++){
+      var upgradeicon = new createjs.Shape();
+      upgradeicon.graphics.beginFill("orange").drawPolyStar(50, 62, 50, 3, 0, -90);
+      upgradeicon.y = i * 100;
+      upgradeShopContainer.addChild(upgradeicon);
+      upgradeicon.on("click", function(evt){
+        buyUpgrade();
+        updateGrade();
+        
+        
+      });
+      //add event listener to icons
+    }
+    // place icons on the shop
+  }
+  
 }
 
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
@@ -848,6 +935,8 @@ function updateClock(time_left) {
     gon.iTimeLeft = time_left;
     document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
     document.getElementById("seconds").innerHTML = time_left % 60;
+    
+    updateGrade();
   }
   var timeinterval = setInterval(updateClock2, 1000);
 }

@@ -14,6 +14,7 @@ class GameController < ApplicationController
       gon.iMapSize = 800 # Width / height of the map
       gon.iMapOffsetX = 200 # Offset left on the canvas for other areas to be added to the left of the map
       gon.iBaseTileLength = 100
+      gon.iUpgradestate = @user.upgradestate
 
       gon.iadmin = @user.admin
 
@@ -44,6 +45,7 @@ class GameController < ApplicationController
       @user.toys = params[:toys]
       @user.timeleft = params[:time_left]
       @user.map = JSON.parse(params[:map])
+      @user.upgradestate = gon.iUpgradestate
       @user.building_map = JSON.parse(params[:building_map])
       @user.save
     end
@@ -59,6 +61,7 @@ class GameController < ApplicationController
       @user.level = @user.level + 1
     end
     @user.timeleft = 45 * 60
+    @user.upgradestate = 0
     @user.toys = 0
     @user.building_map = [["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"],
                           ["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"],
