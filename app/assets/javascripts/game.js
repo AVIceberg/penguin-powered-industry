@@ -84,9 +84,9 @@ function admin()
 function drawMap()
 {
   // Draws singular tiles
-  for (x = iMapOffsetX ; x < iMapSize + iMapOffsetX; x = x + iBaseTileLength)
+  for (y = 0 ; y < iMapSize ; y = y + iBaseTileLength)
   {
-    for (y = 0 ; y < iMapSize ; y = y + iBaseTileLength)
+    for (x = iMapOffsetX ; x < iMapSize + iMapOffsetX; x = x + iBaseTileLength)
     {
       var iType = (gon.strMapSave[y / iBaseTileLength][(x - iMapOffsetX) / iBaseTileLength]); // Read map data to determine what goes here
       var gridSquare = getGridSquare(x, y, iBaseTileLength, iBaseTileLength, iType); // Fetches a container for the square
@@ -743,7 +743,6 @@ function validateTiles(gridTilesAffected)
 
 // END OF TILE HELPER METHODS
 
-<<<<<<< HEAD
 // Non-functional method -- deprecated?
 function animate() {
 }
@@ -753,7 +752,7 @@ function create() {
 }
 function update() {
 }
-=======
+
 // Refunds the building purchase when the user decides to cancel it by clicking in an invalid location
 function refundBuildingPurchase(iType)
 {
@@ -770,9 +769,6 @@ function drawBuildingForMapPlacement(building, size)
   return building;
 }
 
-
->>>>>>> francesco4
-
 // Updates the canvas : Currently set to run 40x / second
 function tick() {
     stageCanvas.update();
@@ -788,19 +784,19 @@ function initialize()
     interval = setInterval(updateClock(gon.iTimeLeft), 1000);
     admin();
     loadUpgrade();
-    
-    
+
+
 }
 
 function loadUpgrade(){
-  
+
   for (var i = gon.iUpgradestate; i > 0; i--){
     buyUpgrade();
   }
   //It loads upgrades into multiplier.
   updateGrade();
-  
-  
+
+
 }
 function buyUpgrade(){
   buildingTypeMultipliers[0]++;
@@ -825,17 +821,17 @@ function updateGrade(){
     if (numtoys > 0){
       lg++;
     }
-    
+
   }
   //use 5 to be the log base for upgrade price
   var upgradeShopContainer = stageCanvas.getChildByName("upgradeShop");
-  
+
   if (upgradeShopContainer.numChildren - 1 != lg){
     while (upgradeShopContainer.numChildren > 1){
       upgradeShopContainer.removeChildAt(upgradeShopContainer.numChildren - 1);
-      
+
     }
-    
+
     //clear all the upgrade icons in the shop
     for ( var i = 0; i < lg; i++){
       var upgradeicon = new createjs.Shape();
@@ -845,14 +841,14 @@ function updateGrade(){
       upgradeicon.on("click", function(evt){
         buyUpgrade();
         updateGrade();
-        
-        
+
+
       });
       //add event listener to icons
     }
     // place icons on the shop
   }
-  
+
 }
 
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
@@ -935,7 +931,7 @@ function updateClock(time_left) {
     gon.iTimeLeft = time_left;
     document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
     document.getElementById("seconds").innerHTML = time_left % 60;
-    
+
     updateGrade();
   }
   var timeinterval = setInterval(updateClock2, 1000);
