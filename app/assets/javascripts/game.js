@@ -45,6 +45,9 @@ var upgradeCost = [500, 800, 10000];
 var upgradeType = [[-2, 0.2], [0, 0.1], [-1, 0.1]];
 var upgradeShopSlotHelper = [null, null, null, null, null, null, null, null];
 
+// Statically holds all upgrade info in case it is required (used during upgrade load, as shop helper changes)
+var upgradeInfoHelper = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
+
 // Game Handlers : Manage game logic
 var iSaveInterval = 2;
 var iMapSize = 800;
@@ -64,9 +67,9 @@ function createjsinit(){
   drawShop(); // Draw shop to the right of the map (offset from y-axis by iMapOffsetX + iMapSize)
 
   stageCanvas.enableMouseOver(); // Enables mouseover events for the canvas
-
   // Load buildings
   loadAllBuildings();
+  loadAllUpgrades();
 
   // Sets up ticker
   createjs.Ticker.setFPS(40);
@@ -278,9 +281,10 @@ function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonW
 {
   var stageX = stageCanvas.mouseX;
   var stageY = stageCanvas.mouseY;
+  var point = button.globalToLocal(stageX, stageY);
+
   if (button.type == "building")
   {
-    point = button.globalToLocal(stageX, stageY);
       // Determines whether the mouse has moved and whether the user has moved to a different location
     if (Math.abs(originalX - stageX) < buttonWidth / 2 && Math.abs(originalY - stageY) < buttonHeight / 2
       && Math.abs(button.x - point.x) < buttonWidth && Math.abs(button.y - point.y) < buttonHeight
@@ -297,6 +301,21 @@ function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonW
       tooltip.y = stageY;
       stageCanvas.addChild(tooltip);
     }
+  }
+  else
+  {
+    // Determines whether the mouse has moved and whether the user has moved to a different location
+    if (Math.abs(originalX - stageX) < buttonWidth / 2 && Math.abs(originalY - stageY) < buttonHeight / 2
+      && Math.abs(button.x - point.x) < buttonWidth && Math.abs(button.y - point.y) < buttonHeight
+      && (stageX >= button.x) && (stageY >= button.y) )
+      {
+        tooltip.getChildByName("text").text = upgradeNames[button.iIndex] + "\n";
+        tooltip.getChildByName("text").text += "Cost: " + upgradeCost[button.iIndex] + "\n";
+        tooltip.getChildByName("text").text += upgradeDescriptions[button.iIndex] + "\n";
+        tooltip.x = stageX;
+        tooltip.y = stageY;
+        stageCanvas.addChild(tooltip);
+      }
   }
 
 }
@@ -756,11 +775,31 @@ function validateTiles(gridTilesAffected)
 // START OF UPGRADES : Handles the creation, purchase, and logic of upgrades
 
 // Instantiates an upgrade based upon its index within the relevant helpers
-function createUpgrade(iIndex)
+function createUpgrade(iIndex, upgradeShop)
 {
   upgrade = new createjs.Shape();
   upgrade.graphics.beginFill("orange").drawPolyStar(50, 50 + iIndex * 50, 25, 3, 0, -90); // PLACEHOLDER DISPLAY
+  upgrade.name = "upgrade";
+
+  // Tooltip initialization
+  upgradeTooltip = new createjs.Container();
+  var tooltipText = new createjs.Text();
+  tooltipText.name = "text";
+  tooltipText.font = "18px Arial";
+  tooltipText.x = 10;
+  tooltipText.y = 15;
+
+  var tooltipBox = new createjs.Shape();
+  tooltipBox.graphics.beginStroke("black").beginFill("#F0F0F0").drawRect(0, 0, 350, 100);
+
+  upgradeTooltip.addChild(tooltipBox);
+  upgradeTooltip.addChild(tooltipText);
+
+  // Container properties and events
   upgrade.type = upgradeType[iIndex][0];
+  upgrade.position = iIndex;
+  upgrade.iIndex = iIndex;
+  upgradeEventHandler(upgrade, iIndex, upgradeShop, upgradeTooltip, 80, 80);
   return upgrade;
 }
 
@@ -769,16 +808,15 @@ function populateUpgradeShop(upgradeShop)
 {
   for (i = 0 ; i < numberOfUpgrades ; i++)
   {
-    var upgrade = createUpgrade(i);
+    var upgrade = createUpgrade(i, upgradeShop);
     upgradeShopSlotHelper[i] = upgrade;
-    upgrade.position = i;
-    upgradeEventHandler(upgrade, i, upgradeShop);
+    upgradeInfoHelper[i] = upgrade;
     upgradeShop.addChild(upgrade);
   }
 }
 
 // Adds the 'click' event handler to purchase an upgrade
-function upgradeEventHandler(upgrade, iIndex, upgradeShop)
+function upgradeEventHandler(upgrade, iIndex, upgradeShop, upgradeTooltip, buttonWidth, buttonHeight)
 {
   upgrade.on("click", function(event)
   {
@@ -814,6 +852,18 @@ function upgradeEventHandler(upgrade, iIndex, upgradeShop)
       errorMessage.innerHTML = "You require " + upgradeCost[iIndex] + " toys to purchase this upgrade!";
     }
   });
+
+  // Displays tooltip if cursor remains stationary for 2 second
+  upgrade.on("mouseover", function(event)
+  {
+    setTimeout(displayShopButtonTooltip, 2000, stageCanvas.mouseX, stageCanvas.mouseY, upgrade, upgradeTooltip, buttonWidth, buttonHeight);
+  });
+
+  upgrade.on("mouseout", function(event)
+  {
+    stageCanvas.removeChild(upgradeTooltip);
+  });
+
 }
 
 // If the user has enough toys, the upgrade is purchased
@@ -828,7 +878,7 @@ function purchaseUpgrade(upgrade, iIndex)
   return bSuccess;
 }
 
-// Fills in the empty spot made when the iIndex-th upgrade is bought
+// Fills in the empty spot made when the deletedUpgrade is purchased by the user
 function updateUpgradePositions(upgradeShop, deletedUpgrade)
 {
   for (i = deletedUpgrade.position + 1; i < numberOfUpgrades ; i++)
@@ -839,11 +889,23 @@ function updateUpgradePositions(upgradeShop, deletedUpgrade)
       upgradeShop.removeChild(upgrade);
       upgrade.graphics.clear("White"); // Wipe the upgrade graphic
       upgrade.graphics.beginFill("orange").drawPolyStar(50, 50 + (i - 1) * 50, 25, 3, 0, -90); // PLACEHOLDER DISPLAY
-      upgrade.position = upgrade.position - 1;
-      window.alert(upgrade.position);
+      upgrade.position = upgrade.position - 1; // The upgrade's position has shifted "down" 1
       upgradeShopSlotHelper[i - 1] = upgrade;
       upgradeShopSlotHelper[i] = null;
       upgradeShop.addChild(upgrade);
+    }
+  }
+}
+
+function loadAllUpgrades()
+{
+  for (j = 0 ; j < numberOfUpgrades ; j++)
+  {
+    var upgrade = upgradeInfoHelper[j];
+    if (gon.iUpgradeStates[j] == 1)
+    {
+      gon.iToys = gon.iToys + upgradeCost[j]; // Add toys required to purchase upgrade
+      upgrade.dispatchEvent("click");         // Purchase upgrade
     }
   }
 }
@@ -876,69 +938,6 @@ function initialize()
     //loadUpgrade();
 }
 
-/*
-function loadUpgrade(){
-
-  for (var i = gon.iUpgradestate; i > 0; i--){
-    buyUpgrade();
-  }
-  //It loads upgrades into multiplier.
-  updateGrade();
-}
-function buyUpgrade(){
-  buildingTypeMultipliers[0]++;
-  buildingTypeMultipliers[1]++;
-  buildingTypeMultipliers[2]++;
-  fClickMultiplier++;
-  gon.iUpgradestate++;
-  gon.iToys -= Math.pow(5, gon.iUpgradestate);
-  updateToys();
-  //The number of toys will be deducted depending on the how many upgrades the user has bought.
-  var info = document.getElementById("error");
-  info.innerHTML = "You have " + gon.iUpgradestate + " upgrades now!";
-  setInterval(function(){
-    info.innerHTML = "";
-  }, 5000);
-}
-function updateGrade(){
-  var numtoys = gon.iToys;
-  var lg = 0;
-  while (numtoys > 0){
-    numtoys -= Math.pow(5, lg + gon.iUpgradestate + 1);
-    if (numtoys > 0){
-      lg++;
-    }
-
-  }
-  //use 5 to be the log base for upgrade price
-  var upgradeShopContainer = stageCanvas.getChildByName("upgradeShop");
-
-  if (upgradeShopContainer.numChildren - 1 != lg){
-    while (upgradeShopContainer.numChildren > 1){
-      upgradeShopContainer.removeChildAt(upgradeShopContainer.numChildren - 1);
-
-    }
-
-    //clear all the upgrade icons in the shop
-    for ( var i = 0; i < lg; i++){
-      var upgradeicon = new createjs.Shape();
-      upgradeicon.graphics.beginFill("orange").drawPolyStar(50, 62, 50, 3, 0, -90);
-      upgradeicon.y = i * 100;
-      upgradeShopContainer.addChild(upgradeicon);
-      upgradeicon.on("click", function(evt){
-        buyUpgrade();
-        updateGrade();
-
-
-      });
-      //add event listener to icons
-    }
-    // place icons on the shop
-  }
-
-}
-*/
-
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
 function incrementToys()
 {
@@ -957,7 +956,7 @@ $.ajax({
   url: "save",
   type: "put",
   data: {toys: Number(gon.iToys), time_left: Number(gon.iTimeLeft), map: JSON.stringify(gon.strMapSave),
-     building_map: JSON.stringify(gon.strBuildingMapSave)}
+     building_map: JSON.stringify(gon.strBuildingMapSave), upgrade_states: JSON.stringify(gon.iUpgradeStates)}
 });
 }
 

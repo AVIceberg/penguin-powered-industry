@@ -31,6 +31,13 @@ class GameController < ApplicationController
           @buildingMap[i][j] = @user.building_map[i][j]
         end
       end
+
+      @upgrades = Array.new(16)
+      16.times do |i|
+        @upgrades[i] = @user.upgrade_states[i]
+      end
+
+      gon.iUpgradeStates = @upgrades;
       gon.strMapSave = @map
       gon.strBuildingMapSave = @buildingMap
 
@@ -45,8 +52,8 @@ class GameController < ApplicationController
       @user.toys = params[:toys]
       @user.timeleft = params[:time_left]
       @user.map = JSON.parse(params[:map])
-      @user.upgradestate = gon.iUpgradestate
       @user.building_map = JSON.parse(params[:building_map])
+      @user.upgrade_states = JSON.parse(params[:upgrade_states])
       @user.save
     end
     render js: ''
