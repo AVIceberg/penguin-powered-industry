@@ -625,6 +625,7 @@ function buildingPlacementEvent(gridSquare)
         //fTotalPassiveIncome += (pressobject.currentPenguins / penguinCapacity[pressobject.type]) * buildingIncome[pressobject.type];
         // Note for Godwin: Remove this and decomment previous line of code once penguins are implemented. Also see the clock code for another change
         gon.iPassiveIncome += buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
+        numberOfBuildingsOwned[pressobject.type]++;
         gridSquare.dispatchEvent("mouseout");
         pressobject = null;
         return;
