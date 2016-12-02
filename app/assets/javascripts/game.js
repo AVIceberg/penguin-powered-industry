@@ -40,6 +40,7 @@ var iClickingBase = 1;
 var numberOfUpgrades = 3;
 var upgradeNames = ["Upgrade #1", "Upgrade #2", "Upgrade #3"];
 var upgradeDescriptions = ["Description for upgrade #1", "Description for upgrade #2", "Description for upgrade #3"];
+var upgradeFormalDescriptions = ["Clicking gain increased by 20%", "Labour camp efficiency increased by 10%", "Efficiency of all buildings incrased by 10%"];
 var upgradeCost = [500, 800, 10000];
 // First Value refers to the building they alter. -1 == all buildings; -2 == clicking
 var upgradeType = [[-2, 0.2], [0, 0.1], [-1, 0.1]];
@@ -288,7 +289,7 @@ function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonW
       // Determines whether the mouse has moved and whether the user has moved to a different location
     if (Math.abs(originalX - stageX) < buttonWidth / 2 && Math.abs(originalY - stageY) < buttonHeight / 2
       && Math.abs(button.x - point.x) < buttonWidth && Math.abs(button.y - point.y) < buttonHeight
-      && (stageX >= button.x) && (stageY >= button.y) )
+      && (point.x >= button.x) && (point.y >= button.y) )
     {
       // Updates tooltip text
       tooltip.getChildByName("text").text = buildingTypes[button.iIndex] + "\n";
@@ -307,11 +308,12 @@ function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonW
     // Determines whether the mouse has moved and whether the user has moved to a different location
     if (Math.abs(originalX - stageX) < buttonWidth / 2 && Math.abs(originalY - stageY) < buttonHeight / 2
       && Math.abs(button.x - point.x) < buttonWidth && Math.abs(button.y - point.y) < buttonHeight
-      && (stageX >= button.x) && (stageY >= button.y) )
+      && (point.x >= button.x) && (point.y >= button.y) )
       {
         tooltip.getChildByName("text").text = upgradeNames[button.iIndex] + "\n";
         tooltip.getChildByName("text").text += "Cost: " + upgradeCost[button.iIndex] + "\n";
         tooltip.getChildByName("text").text += upgradeDescriptions[button.iIndex] + "\n";
+        tooltip.getChildByName("text").text += upgradeFormalDescriptions[button.iIndex] + "\n";
         tooltip.x = stageX;
         tooltip.y = stageY;
         stageCanvas.addChild(tooltip);
