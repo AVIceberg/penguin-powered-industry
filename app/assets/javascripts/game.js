@@ -1,21 +1,24 @@
 // Place all the behaviors and hooks related to the matching controller here.
 // All this logic will automatically be available in application.js.
 
-// Initializes game logic and the map
+// Initializes game logic and all interactive elements
 window.onload=function(){ createjsinit(); initialize();  };
 
-//
+// General global variables used for easy manipulation across functions
+// Do not add global variables lightly! Use them only for things used in disconnected functions / events
+
 var pressobject; // Tracks the building currently being placed
 var stageCanvas; // The primary canvas (Map)
-var temporaryCursor;
-var shop;
+var temporaryCursor; // Holds the object being moved across the map
+var shop; // General shop container (Should probably be refactored out)
 
 var numberOfBuildingTypes = 3;
 
 var terrainTypes = ["Invalid", "Tundra", "Water", "Shoreline"];
 var terrainColours = ["Green", "White", "#89cff0", "White"];
-
 var terrainTypesPermitted = [["Tundra", "Shoreline"], ["Tundra", "Shoreline"], ["Tundra", "Shoreline"]];
+
+// Building variables, handlers : Handle building visuals and logic
 var buildingTypes = ["Labour Camp", "Toy Mine", "Factory"];
 var buildingDescriptions = ["A nice, happy place to get some work done.", "Beneath the earth lie treasures aplenty...",
                             "The grinding of gears can be heard within."];
@@ -34,6 +37,12 @@ var fTotalPassiveIncome = 0.0;                  // Total generated income
 var fClickMultiplier = 1.0;                     // Current multiplier for clicks (affected by upgrades, events)
 var iClickingBase = 1;
 
+// Upgrade Handlers : Manage upgrade descriptions and logic
+var upgradeNames = ["Upgrade #1", "Upgrade #2", "Upgrade #3"];
+var upgradeDescriptions = ["Description for upgrade #1", "Description for upgrade #2", "Description for upgrade #3"];
+var upgradeCost = [500, 800, 10000];
+var upgradePositionHelper = [0, 0, 0, 0, 0, 0, 0, 0]; // Tracks which positions are full in the upgrade shop
+
 // Game Handlers : Manage game logic
 var iSaveInterval = 2;
 var iMapSize = 800;
@@ -44,6 +53,7 @@ var buildingShopWidth = 300;
 // Tracks which tiles are currently illuminated / hovered over by a building during placement
 var tilesHoveredOver = [[null, null, null], [null, null, null], [null, null, null]];
 
+// Manages initialization of all canvas-based elements
 function createjsinit(){
   stageCanvas = new createjs.Stage("gamecanvas");
   // Initialize major map components
@@ -340,14 +350,10 @@ function createBuilding(iIndexOfBuildingType, colour)
 // Adds relevant events to a building object
 function buildingEventSetup(building)
 {
-  var coordinates;
 
   building.on("click", function(event) {
     if (pressobject == null)
     {
-      coordinates = { originX: event.target.x,
-                      originY: event.target.y,
-                      };
 
       // Grab building graphics and store it in temp cursor
       temporaryCursor = event.target.clone(true);
@@ -752,22 +758,6 @@ function preload() {
 function create() {
 }
 function update() {
-}
-
-// Refunds the building purchase when the user decides to cancel it by clicking in an invalid location
-function refundBuildingPurchase(iType)
-{
-  gon.iToys += buildingCosts[iType];
-}
-
-// Redraws the building with the proper coordinates to fit into its grid tile
-function drawBuildingForMapPlacement(building, size)
-{
-  var colour = getBuildingImage(building.type); // Green == Error
-  building.graphics.clear("White");
-
-  building.graphics.beginFill(colour).drawCircle(50 * size, 50 * size, 50 * size);
-  return building;
 }
 
 // Updates the canvas : Currently set to run 40x / second
