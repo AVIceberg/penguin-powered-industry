@@ -251,7 +251,7 @@ function instantiateFreePenguinsButtons() {
 
   //Manage text appearance
   penguinButtonText = new createjs.Text("Idle Penguins: ", "20px Arial", "black");
-  penguinButtonText.text += freePenguins.toString();
+  //penguinButtonText.text += freePenguins.toString();
 
   penguinVisual.graphics.beginStroke("black").beginFill("white").drawRect(0, 0, 200, 200);
   penguinButtonText.textAlign = "center";
@@ -628,7 +628,12 @@ function deductCost(iIndexOfBuildingType)
 // Refunds the building purchase when the user decides to cancel it by clicking in an invalid location
 function refundBuildingPurchase(iType)
 {
-  gon.iToys += buildingCosts[iType];
+  if(iType == 100) {                     //100 is set as penguin
+    idlePenguins = idlePenguins + 1;
+  }
+  else {
+    gon.iToys += buildingCosts[iType];
+  }
 }
 
 // Redraws the building with the proper coordinates to fit into its grid tile
@@ -650,6 +655,7 @@ function createPenguin() {
   var penguin = new createjs.Shape();
   penguin.graphics.beginStroke("black").beginFill(penguinImage).drawCircle(50, 50, 50);
   penguin.name = "penguin";
+  penguin.type = 100;
   penguinEventSetup(penguin);
   return penguin;
 }
@@ -813,6 +819,20 @@ function mouseHoverEvents(gridSquare, visualEffect, visualEffectProhibited, tile
 function buildingPlacementEvent(gridSquare)
 {
   gridSquare.on("click", function(event) {
+    if(pressobject.type == 100) {                      //of type penguin
+      //Remove custom cursor
+      stageCanvas.removeEventListener("mouseover");
+      stageCanvas.removeChild(temporaryCursor);
+
+      if(!gridSquare.isBuilding) {            //if empty grid is clicked
+        idlePenguins = idlePenguins + 1;
+        pressobject = null;
+        return;
+      }
+      else {                        
+        //logic 
+      }
+    }
     if (pressobject != null)
     {
       // Remove custom cursor
