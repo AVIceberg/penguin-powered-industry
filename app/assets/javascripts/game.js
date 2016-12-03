@@ -11,6 +11,7 @@ var pressobject; // Tracks the building currently being placed
 var stageCanvas; // The primary canvas (Map)
 var temporaryCursor; // Holds the object being moved across the map
 var shop; // General shop container (Should probably be refactored out)
+var pShop; // Penguin shop
 
 var terrainTypes = ["Invalid", "Tundra", "Water", "Shoreline"];
 var terrainColours = ["Green", "White", "#89cff0", "White"];
@@ -130,10 +131,20 @@ function drawClickingArea()
   clickingArea.on("click", function(event) {
     if (pressobject != null)
     {
-      // Refund the building
-      refundBuildingPurchase(pressobject.type);
-      stageCanvas.removeChild(temporaryCursor);
-      pressobject = null;
+      if (pressobject.name == "penguin")
+      {
+        idlePenguins++;
+        updatePenValue(pShop.getChildByName("pPen"));
+        stageCanvas.removeChild(temporaryCursor);
+        pressobject = null;
+      }
+      else
+      {
+        // Refund the building
+        refundBuildingPurchase(pressobject.type);
+        stageCanvas.removeChild(temporaryCursor);
+        pressobject = null;
+      }
     }
     else
     {
@@ -143,6 +154,8 @@ function drawClickingArea()
   stageCanvas.addChild(clickingArea);
 }
 
+// START OF PENGUIN SHOP CODE
+
 // Draws the penguin shop and creates the 'penguin purchase button' and the 'penguin pen'
 function drawPenguinShop()
 {
@@ -150,6 +163,9 @@ function drawPenguinShop()
   var pVisualShop = new createjs.Shape();
   var pPurchaseButton = new createjs.Container();
   var pPen = new createjs.Container();
+
+  pPen.name = "pPen";
+  pPurchaseButton.name = "pPurchaseButton";
 
   pShop.width = iMapOffsetX - 5; // Width is the same as clicking area's width
   pShop.height = 600;
@@ -181,62 +197,6 @@ function drawPenguinShop()
   pShop.mouseChildren = true;
 }
 
-function drawShop()
-{
-  var upgradeShopWidth = 100;
-  // Entire Shop (container / visuals)
-  shop = new createjs.Container();
-  var visualShop = new createjs.Shape();
-
-  // Building shop (buildings)
-  var buildingShop = new createjs.Container();
-  var visualBuildingShop = new createjs.Shape();
-
-  // Upgrade shop (Upgrades)
-  var upgradeShop = new createjs.Container();
-  var visualUpgradeShop = new createjs.Shape();
-
-  var shopWidth = upgradeShopWidth + buildingShopWidth;
-  var shopHeight = stageCanvas.canvas.height;
-
-  // Instantiate 'general' shop
-      // Instantiate boundaries / positioning
-  shop.x = iMapOffsetX + iMapSize;
-  shop.y = 0;
-
-      // Instantiate visual background
-  visualShop.graphics.beginStroke("black").drawRect(0, 0, shopWidth, shopHeight);
-  shop.addChild(visualShop);
-  stageCanvas.addChild(shop);
-
-  // Instantiate building shop
-    // Instantiate boundaries / positioning
-  buildingShop.x = iMapOffsetX + iMapSize + upgradeShopWidth;
-  buildingShop.y = 0;
-
-  instantiateBuildingButtons(buildingShop, buildingShopWidth); // Create shop buttons and attach the relevant events
-
-      // Instantiate visual background
-  visualBuildingShop.graphics.beginStroke("black").drawRect(0, 0, buildingShopWidth, shopHeight);
-  buildingShop.addChild(visualBuildingShop);
-  stageCanvas.addChild(buildingShop);
-
-  // Instantiate upgrade shop
-  upgradeShop.x = shop.x;
-  upgradeShop.y = 0;
-  upgradeShop.name = "upgradeShop";
-
-  visualUpgradeShop.graphics.beginStroke("black").drawRect(0, 0, upgradeShopWidth, shopHeight);
-  upgradeShop.addChild(visualUpgradeShop);
-  populateUpgradeShop(upgradeShop);
-  stageCanvas.addChild(upgradeShop);
-
-  // Enables events for children of each container
-  shop.mouseChildren = true;
-  buildingShop.mouseChildren = true;
-  upgradeShop.mouseChildren = true;
-}
-
 function instantiatePenguinPen(pPen, pShop)
 {
   var penguinButtonTooltip = new createjs.Container();
@@ -246,6 +206,7 @@ function instantiatePenguinPen(pPen, pShop)
 
   // Write initial text appearance
   penguinPenText = new createjs.Text("Idle Penguins: 0", "18px Arial", "black");
+  penguinPenText.name = "text";
   penguinPenText.x = 5;
   penguinPenText.y = 5;
 
@@ -309,7 +270,7 @@ function instantiatePenguinShopButton(button, pShop)
 
   button.addChild(pshopButtonText);
 
-  addPenguinShopButtonEvent(button);
+  addPenguinShopButtonEvent(button, pShop);
 }
 
 function addPenguinButtonEvent(pPen)
@@ -321,6 +282,7 @@ function addPenguinButtonEvent(pPen)
       if (pressobject.name == "penguin")
       {
         idlePenguins++;
+        updatePenValue(pPen);
         stageCanvas.removeChild(temporaryCursor);
         pressobject = null;
       }
@@ -337,6 +299,7 @@ function addPenguinButtonEvent(pPen)
         if (penguin)
         {
           idlePenguins = idlePenguins - 1;
+          updatePenValue(pPen);
           penguin.dispatchEvent("click");
         }
       }
@@ -348,7 +311,8 @@ function addPenguinButtonEvent(pPen)
   });
 }
 
-function addPenguinShopButtonEvent(pShopButton) {
+// Adds the 'purchase penguin' button to the shop and instantiates its variables
+function addPenguinShopButtonEvent(pShopButton, pShop) {
   pShopButton.on("click", function(event) {
 
     if (pressobject != null)
@@ -356,6 +320,7 @@ function addPenguinShopButtonEvent(pShopButton) {
         if (pressobject.name == "penguin")
         {
           idlePenguins++;
+          updatePenValue(pShop.getChildByName("pPen"));
           stageCanvas.removeChild(temporaryCursor);
           pressobject = null;
         }
@@ -372,6 +337,7 @@ function addPenguinShopButtonEvent(pShopButton) {
       if(gon.iToys >= penguinCost) {
         gon.iToys = gon.iToys - penguinCost;
         idlePenguins = idlePenguins + 1;
+        updatePenValue(pShop.getChildByName("pPen"));
       }
       else
       {
@@ -380,6 +346,71 @@ function addPenguinShopButtonEvent(pShopButton) {
       }
     }
   });
+}
+
+// Updates the number of penguins visually displayed in the pen
+function updatePenValue(pPen)
+{
+    pPen.getChildByName("text").text = "Idle Penguins: " + idlePenguins;
+}
+
+// END OF PENGUIN SHOP CODE
+// BEGINNING OF BUILDING / UPGRADE SHOP CODE
+
+function drawShop()
+{
+  var upgradeShopWidth = 100;
+  // Entire Shop (container / visuals)
+  shop = new createjs.Container();
+  var visualShop = new createjs.Shape();
+
+  // Building shop (buildings)
+  var buildingShop = new createjs.Container();
+  var visualBuildingShop = new createjs.Shape();
+
+  // Upgrade shop (Upgrades)
+  var upgradeShop = new createjs.Container();
+  var visualUpgradeShop = new createjs.Shape();
+
+  var shopWidth = upgradeShopWidth + buildingShopWidth;
+  var shopHeight = stageCanvas.canvas.height;
+
+  // Instantiate 'general' shop
+      // Instantiate boundaries / positioning
+  shop.x = iMapOffsetX + iMapSize;
+  shop.y = 0;
+
+      // Instantiate visual background
+  visualShop.graphics.beginStroke("black").drawRect(0, 0, shopWidth, shopHeight);
+  shop.addChild(visualShop);
+  stageCanvas.addChild(shop);
+
+  // Instantiate building shop
+    // Instantiate boundaries / positioning
+  buildingShop.x = iMapOffsetX + iMapSize + upgradeShopWidth;
+  buildingShop.y = 0;
+
+  instantiateBuildingButtons(buildingShop, buildingShopWidth); // Create shop buttons and attach the relevant events
+
+      // Instantiate visual background
+  visualBuildingShop.graphics.beginStroke("black").drawRect(0, 0, buildingShopWidth, shopHeight);
+  buildingShop.addChild(visualBuildingShop);
+  stageCanvas.addChild(buildingShop);
+
+  // Instantiate upgrade shop
+  upgradeShop.x = shop.x;
+  upgradeShop.y = 0;
+  upgradeShop.name = "upgradeShop";
+
+  visualUpgradeShop.graphics.beginStroke("black").drawRect(0, 0, upgradeShopWidth, shopHeight);
+  upgradeShop.addChild(visualUpgradeShop);
+  populateUpgradeShop(upgradeShop);
+  stageCanvas.addChild(upgradeShop);
+
+  // Enables events for children of each container
+  shop.mouseChildren = true;
+  buildingShop.mouseChildren = true;
+  upgradeShop.mouseChildren = true;
 }
 
 function instantiateBuildingButtons(buildingShop, buildingShopWidth)
@@ -447,10 +478,20 @@ function addButtonEvents(buildingButton, iIndex, buttonTooltip, buttonWidth, but
   }
   else
   {
-    // Refund the building
-    refundBuildingPurchase(pressobject.type);
-    stageCanvas.removeChild(temporaryCursor);
-    pressobject = null;
+    if (pressobject.name == "penguin")
+    {
+      idlePenguins++;
+      updatePenValue(pShop.getChildByName("pPen"));
+      stageCanvas.removeChild(temporaryCursor);
+      pressobject = null;
+    }
+    else
+    {
+      // Refund the building
+      refundBuildingPurchase(pressobject.type);
+      stageCanvas.removeChild(temporaryCursor);
+      pressobject = null;
+    }
   }
 });
 
@@ -511,6 +552,7 @@ function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonW
 
 }
 
+// END OF BUILDING & UPGRADE SHOP CODE
 // LOADING CODE - Loads buildings and upgrades at game initialization
 
 function loadAllBuildings()
@@ -588,7 +630,6 @@ function buildingEventSetup(building)
   building.on("click", function(event) {
     if (pressobject == null)
     {
-
       // Grab building graphics and store it in temp cursor
       temporaryCursor = event.target.clone(true);
       temporaryCursor.type = event.target.type;
@@ -810,6 +851,11 @@ function mouseHoverEvents(gridSquare, visualEffect, visualEffectProhibited, tile
     // Used to handle all calls made in the above statement
     else if (pressobject != null)
     {
+      // Don't light up squares when dealing with penguins
+      if (pressobject.name == "penguin")
+      {
+        return;
+      }
       if (gridSquare.isBuilding == true || terrainTypesPermitted[pressobject.type].indexOf(terrainTypes[gridSquare.terrainType]) < 0)
       {
         gridSquare.addChild(visualEffectProhibited); // Red
@@ -872,6 +918,7 @@ function buildingPlacementEvent(gridSquare)
         if(!gridSquare.isBuilding)
         {
           idlePenguins = idlePenguins + 1;
+          updatePenValue(pShop.getChildByName("pPen")); // Updates the penguin pen counter
           pressobject = null;
           return;
         }
@@ -882,6 +929,7 @@ function buildingPlacementEvent(gridSquare)
           if (building.currentPenguins >= penguinCapacity[building.type])
           {
             idlePenguins = idlePenguins + 1;
+            updatePenValue(pShop.getChildByName("pPen")); // Updates the penguin pen counter
             pressobject = null;
             return;
           }
