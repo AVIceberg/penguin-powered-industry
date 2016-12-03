@@ -28,6 +28,11 @@ var buildingSize = [1, 1, 2]; // Size of each building (i x i) on the grid
 var buildingImages = ["brown", "grey", "#FFFF88"];
 var penguinCapacity = [20, 100, 1000];
 
+//Penguin counters/logic
+var penguinImage = "Yellow";
+var penguinCost = 100;
+var idlePenguins = 0;
+
 // Income-Handling Variables
 var incomeGeneratedPerBuildingType = [0, 0, 0]; // Used to track how much each building type is producing per second
 var numberOfBuildingsOwned = [0, 0, 0];         // Tracks the number of each building type owned
@@ -65,6 +70,8 @@ function createjsinit(){
   // Initialize major map components
   drawMap(); // Draw map in 'center' of the canvas (offset from y-axis by iMapOffsetX)
   drawClickingArea(); // Draw clicking area to the left of the map (length iMapOffsetX)
+  drawFreePenguins(); // Draw free penguin area right below the clicking area
+  drawPenguinShop();  // Draw penguin shop right below free penguin area 
   drawShop(); // Draw shop to the right of the map (offset from y-axis by iMapOffsetX + iMapSize)
 
   stageCanvas.enableMouseOver(); // Enables mouseover events for the canvas
@@ -137,6 +144,48 @@ function drawClickingArea()
   stageCanvas.addChild(clickingArea);
 }
 
+function drawFreePenguins() {
+  freePenguins = new createjs.Container();
+  var fpVisualShop = new createjs.Shape();
+
+  freePenguinsWidth = 200;
+  freePenguinsHeight = 200;
+
+  //Instantiate and position freePenguins
+  freePenguins.x = -5;
+  freePenguins.y = 210;
+
+  //Instantiate visual background
+  fpVisualShop.graphics.beginStroke("black").drawRect(0, 0, freePenguinsWidth, freePenguinsHeight);
+  freePenguins.addChild(fpVisualShop);
+  stageCanvas.addChild(freePenguins);
+
+  instantiateFreePenguinsButtons();
+
+  freePenguins.mouseChildren = true;
+}
+
+function drawPenguinShop() {
+  pshop = new createjs.Container();
+  var pVisualShop = new createjs.Shape();
+
+  pshopWidth = 200;
+  pshopHeight = 200;
+
+  //Instantiate and position shop
+  pshop.x = -5;
+  pshop.y = 420;
+
+  //Instantiate visual background
+  pVisualShop.graphics.beginStroke("black").drawRect(0, 0, pshopWidth, pshopHeight);
+  pshop.addChild(pVisualShop);
+  stageCanvas.addChild(pshop);
+
+  instantiatePenguinShopButtons();
+
+  pshop.mouseChildren = true;
+}
+
 function drawShop()
 {
   var upgradeShopWidth = 100;
@@ -191,6 +240,122 @@ function drawShop()
   shop.mouseChildren = true;
   buildingShop.mouseChildren = true;
   upgradeShop.mouseChildren = true;
+}
+
+function instantiateFreePenguinsButtons() {
+  var penguinButton = new createjs.Container();
+  var penguinVisual = new createjs.Shape();
+  var penguinButtonTooltip = new createjs.Container();
+  var penguinButtonTooltipText = new createjs.Text();
+  var penguinButtonTooltipBox = new createjs.Shape();
+
+  //Manage text appearance
+  penguinButtonText = new createjs.Text("Idle Penguins: ", "20px Arial", "black");
+  penguinButtonText.text += freePenguins.toString();
+
+  penguinVisual.graphics.beginStroke("black").beginFill("white").drawRect(0, 0, 200, 200);
+  penguinButtonText.textAlign = "center";
+
+  //Initial tooltip Setup
+  penguinButtonTooltipBox.graphics.beginStroke("black").beginFill("#F0F0F0").drawRect(0, 210, 400, 100);
+
+  penguinButtonTooltipText.name = "text";
+  penguinButtonTooltipText.font = "16px Arial";
+  penguinButtonTooltipText.x = 5;
+  penguinButtonTooltipText.y = 10;
+
+  penguinButtonTooltip.addChild(penguinButtonTooltipBox);
+  penguinButtonTooltip.addChild(penguinButtonTooltipText);
+
+  //Sets the visual portion of the container to be the 'clickable' area
+  penguinButton.addChild(penguinVisual);
+  penguinButton.hitArea = penguinVisual;
+
+  addPenguinButtonEvent(penguinButton);
+
+  penguinButton.addChild(penguinButtonText);
+  freePenguins.addChild(penguinButton);
+}
+
+function instantiatePenguinShopButtons() {
+  var pshopButton = new createjs.Container();
+  var pshopButtonVisual = new createjs.Shape();
+  var pshopButtonTooltip = new createjs.Container();
+  var pshopButtonTooltipText = new createjs.Text();
+  var pshopButtonTooltipBox = new createjs.Shape();
+
+  //Manage text appearance
+  pshopButtonText = new createjs.Text("Purchase Penguin Worker", "20px Arial", "black");
+  pshopButtonText.text += "\nCost: " + penguinCost + " toys";
+
+  pshopButtonVisual.graphics.beginStroke("black").beginFill("white").drawRect(0, 0, 200, 200);
+  pshopButtonText.textAlign = "center";
+
+  //Initial tooltip Setup
+  pshopButtonTooltipBox.graphics.beginStroke("black").beginFill("#F0F0F0").drawRect(0, 420, 400, 100);
+
+  pshopButtonTooltipText.name = "text";
+  pshopButtonTooltipText.font = "16px Arial";
+  pshopButtonTooltipText.x = 5;
+  pshopButtonTooltipText.y = 10;
+
+  pshopButtonTooltip.addChild(pshopButtonTooltipBox);
+  pshopButtonTooltip.addChild(pshopButtonTooltipText);
+
+   // Sets the visual portion of the container to be the 'clickable' area
+  pshopButton.addChild(pshopButtonVisual);
+  pshopButton.hitArea = pshopButtonVisual;
+
+  addPenguinShopButtonEvent(pshopButton);
+
+  pshopButton.addChild(pshopButtonText);
+  pshop.addChild(pshopButton);
+}
+
+function addPenguinButtonEvent(penguinButton) {
+  penguinButton.on("click", function(event) {
+    if(pressobject != null) {
+      //Refund the building
+      refundBuildingPurchase(pressobject.type);
+      stageCanvas.removeChild(temporaryCursor);
+      pressobject = null;
+    }
+    else {
+      if(idlePenguins > 0) {
+        var penguin = createPenguin();
+        if(penguin) {
+          idlePenguins = idlePenguins - 1;
+          penguin.dispatchEvent("click");
+        }
+      }
+      else {
+        document.getElementById("error").innerHTML = "No free penguins are available!";
+        errorClearInterval = 0;
+      }
+    }
+  });
+}
+
+function addPenguinShopButtonEvent(pshopButton) {
+  pshopButton.on("click", function(event) {
+    if(pressobject != null) {
+      //Refund the building
+      refundBuildingPurchase(pressobject.type);
+      stageCanvas.removeChild(temporaryCursor);
+      pressobject = null;
+    }
+    else {
+      //Logic for buying penguins
+      if(gon.iToys >= penguinCost) {
+        gon.iToys = gon.iToys - penguinCost;
+        idlePenguins = idlePenguins + 1;
+      }
+      else {
+        document.getElementById("error").innerHTML = "At least " + penguinCost + " toys are required to buy a penguin at this time";
+        errorClearInterval = 0;
+      }
+    }
+  });
 }
 
 function instantiateBuildingButtons(buildingShop, buildingShopWidth)
@@ -477,6 +642,50 @@ function drawBuildingForMapPlacement(building, size)
 }
 
 // END OF BUILDING CODE
+
+// START OF PENGUIN CODE
+
+//Creates a penguin 
+function createPenguin() {
+  var penguin = new createjs.Shape();
+  penguin.graphics.beginStroke("black").beginFill(penguinImage).drawCircle(50, 50, 50);
+  penguin.name = "penguin";
+  penguinEventSetup(penguin);
+  return penguin;
+}
+
+function penguinEventSetup(penguin) {
+  penguin.on("click", function(event) {
+    if(pressobject == null) {
+      //Grab penguin graphics and store it in cursor
+      temporaryCursor = event.target.clone(true);
+      //temporaryCursor = drawPenguinForPlacement();      
+      temporaryCursor.x = stageCanvas.mouseX - 50; 
+      temporaryCursor.y = stageCanvas.mouseY - 50;
+      stageCanvas.addChild(temporaryCursor);
+
+    //While penguin is clicked, stageCanvas will update temporaryCursor's coordinates on mousemove
+      stageCanvas.on("stagemousemove", function(event2) {
+        temporaryCursor.x = event2.target.mouseX - 50;
+        temporaryCursor.y = event2.target.mouseY - 50;
+      });
+
+    //Set pressobject to be a copy of event.target
+      pressobject = event.target.clone(true);
+      pressobject.name = event.target.name;
+
+      if(event.target.parent == null) {
+        event.target.parent.removeChild(event.target);
+      }
+    }
+  });
+}
+
+/*
+function drawPenguinForPlacement() {
+
+}
+*/
 
 // Builds a grid tile for use in the map
 function getGridSquare(x, y, width, height, iType)
@@ -1020,8 +1229,6 @@ function updateClock(time_left) {
     gon.iTimeLeft = time_left;
     document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
     document.getElementById("seconds").innerHTML = time_left % 60;
-
-    updateGrade();
   }
   var timeinterval = setInterval(updateClock2, 1000);
 }
