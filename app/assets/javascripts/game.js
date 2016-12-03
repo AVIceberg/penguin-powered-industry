@@ -23,7 +23,7 @@ var buildingDescriptions = ["A nice, happy place to get some work done.", "Benea
                             "The grinding of gears can be heard within."];
 
 var buildingCosts = [100, 500, 2500];
-var buildingIncome = [5, 10, 100];
+var buildingIncome = [20, 50, 1000];
 var buildingSize = [1, 1, 2]; // Size of each building (i x i) on the grid
 var buildingImages = ["brown", "grey", "#FFFF88"];
 var penguinCapacity = [20, 100, 1000];
@@ -180,28 +180,7 @@ function drawPenguinShop()
   stageCanvas.addChild(pShop); // Add penguin shop to the page
   pShop.mouseChildren = true;
 }
-/*
-function drawFreePenguins() {
-  freePenguins = new createjs.Container();
-  var fpVisualShop = new createjs.Shape();
 
-  freePenguinsWidth = 200;
-  freePenguinsHeight = 200;
-
-  //Instantiate and position freePenguins
-  freePenguins.x = -5;
-  freePenguins.y = 210;
-
-  //Instantiate visual background
-  fpVisualShop.graphics.beginStroke("black").drawRect(0, 0, freePenguinsWidth, freePenguinsHeight);
-  freePenguins.addChild(fpVisualShop);
-  stageCanvas.addChild(freePenguins);
-
-  //instantiateFreePenguinsButtons();
-
-  freePenguins.mouseChildren = true;
-}
-*/
 function drawShop()
 {
   var upgradeShopWidth = 100;
@@ -517,7 +496,7 @@ function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonW
   {
     // Determines whether the mouse has moved and whether the user has moved to a different location
     if (Math.abs(originalX - stageX) < buttonWidth / 2 && Math.abs(originalY - stageY) < buttonHeight / 2
-      && Math.abs(button.x - point.x) < buttonWidth && Math.abs(button.y - point.y) < buttonHeight
+      && Math.abs(button.x - point.x) < buttonWidth && Math.abs((button.y - point.y + (button.iIndex - 1) * 50)) < buttonHeight
       && (point.x >= button.x) && (point.y >= button.y) )
       {
         tooltip.getChildByName("text").text = upgradeNames[button.iIndex] + "\n";
@@ -550,6 +529,12 @@ function loadAllBuildings()
 
         pressobject = createBuilding(iType, colour);
         pressobject.currentPenguins = gon.strBuildingMapSave[x / iBaseTileLength][y / iBaseTileLength][1];
+        // Building has penguins in it already
+        if (pressobject.currentPenguins != 0)
+        {
+          incomeGeneratedPerBuildingType[pressobject.type] += buildingIncome[pressobject.type] * (pressobject.currentPenguins / penguinCapacity[pressobject.type]);
+          recalculateIncome();
+        }
 
         gridSquare = stageCanvas.getObjectUnderPoint(x + iMapOffsetX + iOffset, y, 0);
         gridSquare.dispatchEvent("click");
@@ -570,6 +555,8 @@ function loadAllUpgrades()
     }
   }
 }
+
+// END OF LOADING CODE
 
 // START OF BUILDING
 
@@ -745,12 +732,6 @@ function penguinEventSetup(penguin) {
   });
 }
 
-/*
-function drawPenguinForPlacement() {
-
-}
-*/
-
 // Builds a grid tile for use in the map
 function getGridSquare(x, y, width, height, iType)
 {
@@ -874,6 +855,7 @@ function mouseHoverEvents(gridSquare, visualEffect, visualEffectProhibited, tile
 }
 
 // An event for each grid tile that activates when a user tries to place a building on the map
+// Requires refactoring and renaming!
 function buildingPlacementEvent(gridSquare)
 {
   gridSquare.on("click", function(event) {
@@ -895,10 +877,8 @@ function buildingPlacementEvent(gridSquare)
         }
         else
         {
-          window.alert("Ping");
           var building = gridSquare.getChildByName("building");
           // If building is full, do not add a penguin to it
-          window.alert(building);
           if (building.currentPenguins >= penguinCapacity[building.type])
           {
             idlePenguins = idlePenguins + 1;
@@ -907,9 +887,12 @@ function buildingPlacementEvent(gridSquare)
           }
           else
           {
+            incomeGeneratedPerBuildingType[building.type] -= buildingIncome[building.type] * (building.currentPenguins / penguinCapacity[building.type])
             building.currentPenguins++;
+            incomeGeneratedPerBuildingType[building.type] += buildingIncome[building.type] * (building.currentPenguins / penguinCapacity[building.type])
             gon.strBuildingMapSave[(gridSquare.x - iMapOffsetX) / iBaseTileLength][gridSquare.y / iBaseTileLength][1]++;
             pressobject = null;
+            recalculateIncome();
             return;
           }
         }
@@ -958,9 +941,6 @@ function buildingPlacementEvent(gridSquare)
           gridSquare.addChild(newCopyOfBuilding);
           gridSquare.buildingType = pressobject.type;
           gon.strBuildingMapSave[(gridSquare.x - iMapOffsetX) / iBaseTileLength][gridSquare.y / iBaseTileLength][0] = pressobject.type;
-          //fTotalPassiveIncome += (pressobject.currentPenguins / penguinCapacity[pressobject.type]) * buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
-          // Note for Godwin: Remove this and decomment previous line of code once penguins are implemented. Also see the clock code for another change
-          gon.iPassiveIncome += buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
           numberOfBuildingsOwned[pressobject.type]++;
           gridSquare.dispatchEvent("mouseout");
           pressobject = null;
@@ -1000,8 +980,8 @@ function displayTileTooltip(originalX, originalY, gridSquare, tileTooltip)
       tileTooltip.getChildByName("text").text += "Building: " + buildingTypes[gridSquare.buildingType];
       tileTooltip.getChildByName("text").text += "\nCapacity: " + gridSquare.getChildByName("building").currentPenguins + " / " + gridSquare.getChildByName("building").maxPenguins + "\n";
       tileTooltip.getChildByName("text").text += "Generating: " +
-       (gridSquare.getChildByName("building").currentPenguins / gridSquare.getChildByName("building").maxPenguins)
-        * gridSquare.getChildByName("building").type + " toys";
+       (gridSquare.getChildByName("building").currentPenguins / penguinCapacity[gridSquare.getChildByName("building").type])
+        * buildingIncome[gridSquare.getChildByName("building").type] + " toys";
     }
     // Adds tooltip to stage offset from the current position
     tileTooltip.x = stageCanvas.mouseX;
@@ -1125,6 +1105,7 @@ function populateUpgradeShop(upgradeShop)
 }
 
 // Adds the 'click' event handler to purchase an upgrade
+// TO-DO: When an upgrade is purchased, all buildings affected should have their 'Generating' tooltip updated accordingly.
 function upgradeEventHandler(upgrade, iIndex, upgradeShop, upgradeTooltip, buttonWidth, buttonHeight)
 {
   upgrade.on("click", function(event)
@@ -1154,6 +1135,7 @@ function upgradeEventHandler(upgrade, iIndex, upgradeShop, upgradeTooltip, butto
       {
         buildingTypeMultipliers[upgrade.type] *= multiplerAmount;
       }
+      recalculateIncome();
     }
     else
     {
@@ -1241,6 +1223,18 @@ function incrementToys()
   updateToys();
 }
 
+// Recalculates total income based around building income (by type) and mulipliers.
+// Does not recalculate cost for individual buildings : This is done during penguin placement
+function recalculateIncome()
+{
+  fTotalPassiveIncome = 0;
+
+  for (i = 0 ; i < numberOfBuildingTypes ; i++)
+  {
+    fTotalPassiveIncome += incomeGeneratedPerBuildingType[i] * buildingTypeMultipliers[i];
+  }
+}
+
 // Updates the displayed toys on screen
 function updateToys()
 {
@@ -1309,8 +1303,8 @@ function updateClock(time_left) {
     }
     errorClearInterval = errorClearInterval + 1;
     time_left = time_left - 1;
-    gon.iToys += gon.iPassiveIncome; // Remove this line of code once penguins are implemented
-    // gon.iToys += fTotalPassiveIncome;
+
+    gon.iToys += fTotalPassiveIncome;
     updateToys();
     gon.iTimeLeft = time_left;
     document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
