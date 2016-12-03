@@ -70,8 +70,7 @@ function createjsinit(){
   // Initialize major map components
   drawMap(); // Draw map in 'center' of the canvas (offset from y-axis by iMapOffsetX)
   drawClickingArea(); // Draw clicking area to the left of the map (length iMapOffsetX)
-  drawFreePenguins(); // Draw free penguin area right below the clicking area
-  drawPenguinShop();  // Draw penguin shop right below free penguin area 
+  drawPenguinShop();  // Draw penguin shop right below free penguin area
   drawShop(); // Draw shop to the right of the map (offset from y-axis by iMapOffsetX + iMapSize)
 
   stageCanvas.enableMouseOver(); // Enables mouseover events for the canvas
@@ -144,6 +143,44 @@ function drawClickingArea()
   stageCanvas.addChild(clickingArea);
 }
 
+// Draws the penguin shop and creates the 'penguin purchase button' and the 'penguin pen'
+function drawPenguinShop()
+{
+  pShop = new createjs.Container();
+  var pVisualShop = new createjs.Shape();
+  var pPurchaseButton = new createjs.Container();
+  var pPen = new createjs.Container();
+
+  pShop.width = iMapOffsetX - 5; // Width is the same as clicking area's width
+  pShop.height = 600;
+
+  pPurchaseButton.width = iMapOffsetX - 40;
+  pPurchaseButton.height = 100;
+
+  pPen.width = iMapOffsetX - 40;
+  pPen.height = 100;
+
+  // Position the shop and its two sub-components
+  pShop.x = 0;
+  pShop.y = 200;
+  pPurchaseButton.y = 20;
+  pPurchaseButton.x = 20;
+  pPen.x = 20;
+  pPen.y = 2 * 20 + pPurchaseButton.height;
+
+  // Add all components of the shop to the shop as children
+  pVisualShop.graphics.beginStroke("black").drawRect(0, 0, pShop.width, pShop.height);
+  pShop.addChild(pVisualShop);
+  pShop.addChild(pPurchaseButton);
+  pShop.addChild(pPen)
+
+  instantiatePenguinShopButton(pPurchaseButton, pShop);
+  instantiatePenguinPen(pPen, pShop);
+
+  stageCanvas.addChild(pShop); // Add penguin shop to the page
+  pShop.mouseChildren = true;
+}
+/*
 function drawFreePenguins() {
   freePenguins = new createjs.Container();
   var fpVisualShop = new createjs.Shape();
@@ -160,32 +197,11 @@ function drawFreePenguins() {
   freePenguins.addChild(fpVisualShop);
   stageCanvas.addChild(freePenguins);
 
-  instantiateFreePenguinsButtons();
+  //instantiateFreePenguinsButtons();
 
   freePenguins.mouseChildren = true;
 }
-
-function drawPenguinShop() {
-  pshop = new createjs.Container();
-  var pVisualShop = new createjs.Shape();
-
-  pshopWidth = 200;
-  pshopHeight = 200;
-
-  //Instantiate and position shop
-  pshop.x = -5;
-  pshop.y = 420;
-
-  //Instantiate visual background
-  pVisualShop.graphics.beginStroke("black").drawRect(0, 0, pshopWidth, pshopHeight);
-  pshop.addChild(pVisualShop);
-  stageCanvas.addChild(pshop);
-
-  instantiatePenguinShopButtons();
-
-  pshop.mouseChildren = true;
-}
-
+*/
 function drawShop()
 {
   var upgradeShopWidth = 100;
@@ -242,21 +258,22 @@ function drawShop()
   upgradeShop.mouseChildren = true;
 }
 
-function instantiateFreePenguinsButtons() {
-  var penguinButton = new createjs.Container();
-  var penguinVisual = new createjs.Shape();
+function instantiatePenguinPen(pPen, pShop)
+{
   var penguinButtonTooltip = new createjs.Container();
   var penguinButtonTooltipText = new createjs.Text();
   var penguinButtonTooltipBox = new createjs.Shape();
+  var penguinPenVisual = new createjs.Shape();
 
-  //Manage text appearance
-  penguinButtonText = new createjs.Text("Idle Penguins: ", "20px Arial", "black");
-  //penguinButtonText.text += freePenguins.toString();
+  // Write initial text appearance
+  penguinPenText = new createjs.Text("Idle Penguins: 0", "18px Arial", "black");
+  penguinPenText.x = 5;
+  penguinPenText.y = 5;
 
-  penguinVisual.graphics.beginStroke("black").beginFill("white").drawRect(0, 0, 200, 200);
-  penguinButtonText.textAlign = "center";
+  penguinPenVisual.graphics.beginStroke("black").beginFill("white").drawRect(0, 0, pPen.width, pPen.height);
 
   //Initial tooltip Setup
+  /*
   penguinButtonTooltipBox.graphics.beginStroke("black").beginFill("#F0F0F0").drawRect(0, 210, 400, 100);
 
   penguinButtonTooltipText.name = "text";
@@ -266,32 +283,36 @@ function instantiateFreePenguinsButtons() {
 
   penguinButtonTooltip.addChild(penguinButtonTooltipBox);
   penguinButtonTooltip.addChild(penguinButtonTooltipText);
+  */
 
-  //Sets the visual portion of the container to be the 'clickable' area
-  penguinButton.addChild(penguinVisual);
-  penguinButton.hitArea = penguinVisual;
+  // Sets the visual portion of the container to be the 'clickable' area
+  pPen.addChild(penguinPenVisual);
+  pPen.hitArea = penguinPenVisual;
 
-  addPenguinButtonEvent(penguinButton);
+  addPenguinButtonEvent(pPen);
 
-  penguinButton.addChild(penguinButtonText);
-  freePenguins.addChild(penguinButton);
+  pPen.addChild(penguinPenText);
+  //freePenguins.addChild(penguinButton);
 }
 
-function instantiatePenguinShopButtons() {
-  var pshopButton = new createjs.Container();
-  var pshopButtonVisual = new createjs.Shape();
+function instantiatePenguinShopButton(button, pShop)
+{
   var pshopButtonTooltip = new createjs.Container();
   var pshopButtonTooltipText = new createjs.Text();
   var pshopButtonTooltipBox = new createjs.Shape();
+  var pVisualPurchaseButton = new createjs.Shape();
+
+  pVisualPurchaseButton.graphics.beginStroke("black").beginFill("White").drawRect(0, 0, pShop.width - 40, 80);
 
   //Manage text appearance
-  pshopButtonText = new createjs.Text("Purchase Penguin Worker", "20px Arial", "black");
+  pshopButtonText = new createjs.Text("Purchase Penguin", "14px Arial", "black");
   pshopButtonText.text += "\nCost: " + penguinCost + " toys";
 
-  pshopButtonVisual.graphics.beginStroke("black").beginFill("white").drawRect(0, 0, 200, 200);
-  pshopButtonText.textAlign = "center";
+  pshopButtonText.x = 5;
+  pshopButtonText.y = 5;
 
   //Initial tooltip Setup
+  /*
   pshopButtonTooltipBox.graphics.beginStroke("black").beginFill("#F0F0F0").drawRect(0, 420, 400, 100);
 
   pshopButtonTooltipText.name = "text";
@@ -301,29 +322,41 @@ function instantiatePenguinShopButtons() {
 
   pshopButtonTooltip.addChild(pshopButtonTooltipBox);
   pshopButtonTooltip.addChild(pshopButtonTooltipText);
+  */
 
-   // Sets the visual portion of the container to be the 'clickable' area
-  pshopButton.addChild(pshopButtonVisual);
-  pshopButton.hitArea = pshopButtonVisual;
+  // Add visual button and define its hit box
+  button.addChild(pVisualPurchaseButton);
+  button.hitArea = pVisualPurchaseButton;
 
-  addPenguinShopButtonEvent(pshopButton);
+  button.addChild(pshopButtonText);
 
-  pshopButton.addChild(pshopButtonText);
-  pshop.addChild(pshopButton);
+  addPenguinShopButtonEvent(button);
 }
 
-function addPenguinButtonEvent(penguinButton) {
-  penguinButton.on("click", function(event) {
-    if(pressobject != null) {
-      //Refund the building
-      refundBuildingPurchase(pressobject.type);
-      stageCanvas.removeChild(temporaryCursor);
-      pressobject = null;
+function addPenguinButtonEvent(pPen)
+{
+  pPen.on("click", function(event) {
+
+    if(pressobject != null)
+    {
+      if (pressobject.name == "penguin")
+      {
+        idlePenguins++;
+        stageCanvas.removeChild(temporaryCursor);
+        pressobject = null;
+      }
+      else
+      {
+        refundBuildingPurchase(pressobject.type);
+        stageCanvas.removeChild(temporaryCursor);
+        pressobject = null;
+      }
     }
     else {
       if(idlePenguins > 0) {
         var penguin = createPenguin();
-        if(penguin) {
+        if (penguin)
+        {
           idlePenguins = idlePenguins - 1;
           penguin.dispatchEvent("click");
         }
@@ -336,21 +369,33 @@ function addPenguinButtonEvent(penguinButton) {
   });
 }
 
-function addPenguinShopButtonEvent(pshopButton) {
-  pshopButton.on("click", function(event) {
-    if(pressobject != null) {
-      //Refund the building
-      refundBuildingPurchase(pressobject.type);
-      stageCanvas.removeChild(temporaryCursor);
-      pressobject = null;
-    }
-    else {
+function addPenguinShopButtonEvent(pShopButton) {
+  pShopButton.on("click", function(event) {
+
+    if (pressobject != null)
+      {
+        if (pressobject.name == "penguin")
+        {
+          idlePenguins++;
+          stageCanvas.removeChild(temporaryCursor);
+          pressobject = null;
+        }
+        else
+        {
+          refundBuildingPurchase(pressobject.type);
+          stageCanvas.removeChild(temporaryCursor);
+          pressobject = null;
+        }
+      }
+    else
+    {
       //Logic for buying penguins
       if(gon.iToys >= penguinCost) {
         gon.iToys = gon.iToys - penguinCost;
         idlePenguins = idlePenguins + 1;
       }
-      else {
+      else
+      {
         document.getElementById("error").innerHTML = "At least " + penguinCost + " toys are required to buy a penguin at this time";
         errorClearInterval = 0;
       }
@@ -498,17 +543,30 @@ function loadAllBuildings()
     for (y = 0 ; y < iMapSize ; y = y + iBaseTileLength)
     {
       // Note: X, Y reversed from map data
-      var iType = (gon.strBuildingMapSave[x / iBaseTileLength][y / iBaseTileLength]); // Read map data to determine what goes here
-
+      var iType = (gon.strBuildingMapSave[x / iBaseTileLength][y / iBaseTileLength][0]); // Read map data to determine what goes here
       if (iType != "-1")
       {
         var colour = getBuildingImage(iType);
 
         pressobject = createBuilding(iType, colour);
+        pressobject.currentPenguins = gon.strBuildingMapSave[x / iBaseTileLength][y / iBaseTileLength][1];
 
         gridSquare = stageCanvas.getObjectUnderPoint(x + iMapOffsetX + iOffset, y, 0);
         gridSquare.dispatchEvent("click");
       }
+    }
+  }
+}
+
+function loadAllUpgrades()
+{
+  for (j = 0 ; j < numberOfUpgrades ; j++)
+  {
+    var upgrade = upgradeInfoHelper[j];
+    if (gon.iUpgradeStates[j] == 1)
+    {
+      gon.iToys = gon.iToys + upgradeCost[j]; // Add toys required to purchase upgrade
+      upgrade.dispatchEvent("click");         // Purchase upgrade
     }
   }
 }
@@ -650,12 +708,13 @@ function drawBuildingForMapPlacement(building, size)
 
 // START OF PENGUIN CODE
 
-//Creates a penguin 
+//Creates a penguin
 function createPenguin() {
   var penguin = new createjs.Shape();
-  penguin.graphics.beginStroke("black").beginFill(penguinImage).drawCircle(50, 50, 50);
+  penguin.graphics.beginStroke("black").beginFill(penguinImage).drawRect(0, 0, 20, 20);
   penguin.name = "penguin";
   penguin.type = 100;
+  penguin.size = 1;
   penguinEventSetup(penguin);
   return penguin;
 }
@@ -665,15 +724,15 @@ function penguinEventSetup(penguin) {
     if(pressobject == null) {
       //Grab penguin graphics and store it in cursor
       temporaryCursor = event.target.clone(true);
-      //temporaryCursor = drawPenguinForPlacement();      
-      temporaryCursor.x = stageCanvas.mouseX - 50; 
-      temporaryCursor.y = stageCanvas.mouseY - 50;
+      //temporaryCursor = drawPenguinForPlacement();
+      temporaryCursor.x = stageCanvas.mouseX - 5;
+      temporaryCursor.y = stageCanvas.mouseY - 5;
       stageCanvas.addChild(temporaryCursor);
 
     //While penguin is clicked, stageCanvas will update temporaryCursor's coordinates on mousemove
       stageCanvas.on("stagemousemove", function(event2) {
-        temporaryCursor.x = event2.target.mouseX - 50;
-        temporaryCursor.y = event2.target.mouseY - 50;
+        temporaryCursor.x = event2.target.mouseX - 5;
+        temporaryCursor.y = event2.target.mouseY - 5;
       });
 
     //Set pressobject to be a copy of event.target
@@ -681,7 +740,6 @@ function penguinEventSetup(penguin) {
       pressobject.name = event.target.name;
 
       if(event.target.parent == null) {
-        event.target.parent.removeChild(event.target);
       }
     }
   });
@@ -819,84 +877,104 @@ function mouseHoverEvents(gridSquare, visualEffect, visualEffectProhibited, tile
 function buildingPlacementEvent(gridSquare)
 {
   gridSquare.on("click", function(event) {
-    if(pressobject.type == 100) {                      //of type penguin
-      //Remove custom cursor
-      stageCanvas.removeEventListener("mouseover");
-      stageCanvas.removeChild(temporaryCursor);
-
-      if(!gridSquare.isBuilding) {            //if empty grid is clicked
-        idlePenguins = idlePenguins + 1;
-        pressobject = null;
-        return;
-      }
-      else {                        
-        //logic 
-      }
-    }
     if (pressobject != null)
     {
       // Remove custom cursor
-      stageCanvas.removeEventListener("mouseover");
+      stageCanvas.removeEventListener("stagemousemove");
       stageCanvas.removeChild(temporaryCursor);
 
-      var gridTilesAffected = getTiles(gridSquare) // Collect affected containers and check for validity
-      var validLocation = validateTiles(gridTilesAffected);
-      // If the location is valid, place the building
-      if (validLocation == true)
+      // If a penguin is being added to a building
+      if (pressobject.name == "penguin")
       {
-        // If necessary, draw a new container to hold the building (if it is larger than a 1x1)
-        if (pressobject.size > 1)
+        // If the tile does not contain a building
+        if(!gridSquare.isBuilding)
         {
-          // Remove all 1v1 tiles to make room for the new container
-          for (i = 0 ; i < pressobject.size ; i++)
-          {
-            for (j = 0 ; j < pressobject.size ; j++)
-            {
-              stageCanvas.removeChild(gridTilesAffected[i][j]);
-            }
-          }
-          // Create the new container
-          gridSquare = getGridSquare(gridSquare.x, gridSquare.y, iBaseTileLength * pressobject.size, iBaseTileLength * pressobject.size, 1);
-          gridSquare.isBuilding = true;
-          stageCanvas.addChild(gridSquare);
+          idlePenguins = idlePenguins + 1;
+          pressobject = null;
+          return;
         }
         else
         {
-          gridSquare.isBuilding = true;
+          window.alert("Ping");
+          var building = gridSquare.getChildByName("building");
+          // If building is full, do not add a penguin to it
+          window.alert(building);
+          if (building.currentPenguins >= penguinCapacity[building.type])
+          {
+            idlePenguins = idlePenguins + 1;
+            pressobject = null;
+            return;
+          }
+          else
+          {
+            building.currentPenguins++;
+            gon.strBuildingMapSave[(gridSquare.x - iMapOffsetX) / iBaseTileLength][gridSquare.y / iBaseTileLength][1]++;
+            pressobject = null;
+            return;
+          }
         }
-        // Draw building for proper placement in tile
-        pressobject = drawBuildingForMapPlacement(pressobject, pressobject.size);
-
-        // Create a new object of pressobject so pressobject can be cleared freely.
-        newCopyOfBuilding = pressobject.clone(true);
-        newCopyOfBuilding.name = "building";
-        newCopyOfBuilding.type = pressobject.type
-
-        newCopyOfBuilding.size = pressobject.size;
-        newCopyOfBuilding.maxPenguins = pressobject.maxPenguins;
-        newCopyOfBuilding.currentPenguins = pressobject.currentPenguins;
-        newCopyOfBuilding.allowedTerrain = pressobject.allowedTerrain;
-
-        // Add the new building to the tile and increment income appropriately
-        gridSquare.addChild(newCopyOfBuilding);
-        gridSquare.buildingType = pressobject.type;
-        gon.strBuildingMapSave[(gridSquare.x - iMapOffsetX) / iBaseTileLength][gridSquare.y / iBaseTileLength] = pressobject.type;
-        //fTotalPassiveIncome += (pressobject.currentPenguins / penguinCapacity[pressobject.type]) * buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
-        // Note for Godwin: Remove this and decomment previous line of code once penguins are implemented. Also see the clock code for another change
-        gon.iPassiveIncome += buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
-        numberOfBuildingsOwned[pressobject.type]++;
-        gridSquare.dispatchEvent("mouseout");
-        pressobject = null;
-        return;
       }
       else
       {
-        // Else, Refund the building
-        gridSquare.dispatchEvent("mouseout");
-        refundBuildingPurchase(pressobject.type);
-        pressobject = null;
+        var gridTilesAffected = getTiles(gridSquare) // Collect affected containers and check for validity
+        var validLocation = validateTiles(gridTilesAffected);
+        // If the location is valid, place the building
+        if (validLocation == true)
+        {
+          // If necessary, draw a new container to hold the building (if it is larger than a 1x1)
+          if (pressobject.size > 1)
+          {
+            // Remove all 1v1 tiles to make room for the new container
+            for (i = 0 ; i < pressobject.size ; i++)
+            {
+              for (j = 0 ; j < pressobject.size ; j++)
+              {
+                stageCanvas.removeChild(gridTilesAffected[i][j]);
+              }
+            }
+            // Create the new container
+            gridSquare = getGridSquare(gridSquare.x, gridSquare.y, iBaseTileLength * pressobject.size, iBaseTileLength * pressobject.size, 1);
+            gridSquare.isBuilding = true;
+            stageCanvas.addChild(gridSquare);
+          }
+          else
+          {
+            gridSquare.isBuilding = true;
+          }
+          // Draw building for proper placement in tile
+          pressobject = drawBuildingForMapPlacement(pressobject, pressobject.size);
+
+          // Create a new object of pressobject so pressobject can be cleared freely.
+          newCopyOfBuilding = pressobject.clone(true);
+          newCopyOfBuilding.name = "building";
+          newCopyOfBuilding.type = pressobject.type
+
+          newCopyOfBuilding.size = pressobject.size;
+          newCopyOfBuilding.maxPenguins = pressobject.maxPenguins;
+          newCopyOfBuilding.currentPenguins = pressobject.currentPenguins;
+          newCopyOfBuilding.allowedTerrain = pressobject.allowedTerrain;
+
+          // Add the new building to the tile and increment income appropriately
+          gridSquare.addChild(newCopyOfBuilding);
+          gridSquare.buildingType = pressobject.type;
+          gon.strBuildingMapSave[(gridSquare.x - iMapOffsetX) / iBaseTileLength][gridSquare.y / iBaseTileLength][0] = pressobject.type;
+          //fTotalPassiveIncome += (pressobject.currentPenguins / penguinCapacity[pressobject.type]) * buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
+          // Note for Godwin: Remove this and decomment previous line of code once penguins are implemented. Also see the clock code for another change
+          gon.iPassiveIncome += buildingIncome[pressobject.type] * buildingTypeMultipliers[pressobject.type];
+          numberOfBuildingsOwned[pressobject.type]++;
+          gridSquare.dispatchEvent("mouseout");
+          pressobject = null;
+          return;
+        }
+        else
+        {
+          // Else, Refund the building
+          gridSquare.dispatchEvent("mouseout");
+          refundBuildingPurchase(pressobject.type);
+          pressobject = null;
+        }
       }
-    }
+  }
   });
 }
 
@@ -1128,18 +1206,6 @@ function updateUpgradePositions(upgradeShop, deletedUpgrade)
   }
 }
 
-function loadAllUpgrades()
-{
-  for (j = 0 ; j < numberOfUpgrades ; j++)
-  {
-    var upgrade = upgradeInfoHelper[j];
-    if (gon.iUpgradeStates[j] == 1)
-    {
-      gon.iToys = gon.iToys + upgradeCost[j]; // Add toys required to purchase upgrade
-      upgrade.dispatchEvent("click");         // Purchase upgrade
-    }
-  }
-}
 // END OF UPGRADES
 
 // Non-functional method -- deprecated?
@@ -1166,7 +1232,6 @@ function initialize()
 
     interval = setInterval(updateClock(gon.iTimeLeft), 1000);
     admin();
-    //loadUpgrade();
 }
 
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
@@ -1183,6 +1248,7 @@ function updateToys()
 }
 
 var callSave = function(){
+  //window.alert(JSON.stringify(gon.strBuildingMapSave));
 $.ajax({
   url: "save",
   type: "put",
