@@ -532,13 +532,14 @@ function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonW
   var stageX = stageCanvas.mouseX;
   var stageY = stageCanvas.mouseY;
   var point = button.globalToLocal(stageX, stageY);
+  var point2 = shop.globalToLocal(stageX, stageY);
 
   if (button.type == "building")
   {
       // Determines whether the mouse has moved and whether the user has moved to a different location
     if (Math.abs(originalX - stageX) < buttonWidth / 2 && Math.abs(originalY - stageY) < buttonHeight / 2
-      && Math.abs(button.x - point.x) < buttonWidth && Math.abs(button.y - point.y) < buttonHeight
-      && (point.x >= button.x) && (point.y >= button.y) )
+      && Math.abs(button.x - point2.x) < buttonWidth && Math.abs(button.y - point2.y) < buttonHeight
+      && (point.x >= button.x) && (point2.y >= button.y) )
     {
       // Updates tooltip text
       tooltip.getChildByName("text").text = buildingTypes[button.iIndex] + "\n";
@@ -555,9 +556,9 @@ function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonW
   else
   {
     // Determines whether the mouse has moved and whether the user has moved to a different location
-    if (Math.abs(originalX - stageX) < buttonWidth / 2 && Math.abs(originalY - stageY) < buttonHeight / 2
-      && Math.abs(button.x - point.x) < buttonWidth && Math.abs((button.y - point.y + (button.iIndex - 1) * 50)) < buttonHeight
-      && (point.x >= button.x) && (point.y >= button.y) )
+    if (Math.abs(originalX - stageX) < buttonWidth && Math.abs(originalY - stageY) < buttonHeight
+      && Math.abs(button.x - point2.x - 25) < buttonWidth && Math.abs(button.y - point2.y - 25) < buttonHeight
+      && (point.x >= -25) && (point.y >= -25))
       {
         tooltip.getChildByName("text").text = upgradeNames[button.iIndex] + "\n";
         tooltip.getChildByName("text").text += "Cost: " + upgradeCost[button.iIndex] + "\n";
@@ -1157,8 +1158,10 @@ function validateTiles(gridTilesAffected)
 function createUpgrade(iIndex, upgradeShop)
 {
   upgrade = new createjs.Shape();
-  upgrade.graphics.beginFill("orange").drawPolyStar(50, 50 + iIndex * 50, 25, 3, 0, -90); // PLACEHOLDER DISPLAY
+  upgrade.graphics.beginFill("orange").drawPolyStar(0, 0, 25, 3, 0, -90); // PLACEHOLDER DISPLAY
   upgrade.name = "upgrade";
+  upgrade.x = 50;
+  upgrade.y = 50 + iIndex * 50;
 
   // Tooltip initialization
   upgradeTooltip = new createjs.Container();
@@ -1178,7 +1181,7 @@ function createUpgrade(iIndex, upgradeShop)
   upgrade.type = upgradeType[iIndex][0];
   upgrade.position = iIndex;
   upgrade.iIndex = iIndex;
-  upgradeEventHandler(upgrade, iIndex, upgradeShop, upgradeTooltip, 80, 80);
+  upgradeEventHandler(upgrade, iIndex, upgradeShop, upgradeTooltip, 50, 50);
   return upgrade;
 }
 
@@ -1269,10 +1272,12 @@ function updateUpgradePositions(upgradeShop, deletedUpgrade)
     {
       upgradeShop.removeChild(upgrade);
       upgrade.graphics.clear("White"); // Wipe the upgrade graphic
-      upgrade.graphics.beginFill("orange").drawPolyStar(50, 50 + (i - 1) * 50, 25, 3, 0, -90); // PLACEHOLDER DISPLAY
+      upgrade.graphics.beginFill("orange").drawPolyStar(0, 0, 25, 3, 0, -90); // PLACEHOLDER DISPLAY
       upgrade.position = upgrade.position - 1; // The upgrade's position has shifted "down" 1
       upgradeShopSlotHelper[i - 1] = upgrade;
       upgradeShopSlotHelper[i] = null;
+      upgrade.x = 50;
+      upgrade.y = 50 + (i - 1) * 50;
       upgradeShop.addChild(upgrade);
     }
   }
