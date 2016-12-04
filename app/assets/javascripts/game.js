@@ -1027,6 +1027,24 @@ function buildingPlacementEvent(gridSquare)
         }
       }
   }
+  // Removes a penguin from the building
+  else
+  {
+    if(gridSquare.isBuilding)
+    {
+      var building = gridSquare.getChildByName("building");
+      // If the building has a penguin, remove it, recalculate income, and 'click' it.
+      if (building.currentPenguins > 0)
+      {
+        incomeGeneratedPerBuildingType[building.type] -= buildingIncome[building.type] * (building.currentPenguins / penguinCapacity[building.type])
+        building.currentPenguins--;
+        incomeGeneratedPerBuildingType[building.type] += buildingIncome[building.type] * (building.currentPenguins / penguinCapacity[building.type])
+        var penguin = createPenguin();
+        recalculateIncome();
+        penguin.dispatchEvent("click");
+      }
+    }
+  }
   });
 }
 
