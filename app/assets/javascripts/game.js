@@ -11,7 +11,7 @@ var pressobject; // Tracks the building currently being placed
 var stageCanvas; // The primary canvas (Map)
 var temporaryCursor; // Holds the object being moved across the map
 var shop; // General shop container (Should probably be refactored out)
-var pShop; // Penguin shop
+var pShop; // Penguin shop (Should probably be refactored out : Temporarily used to update penguin pen
 
 var terrainTypes = ["Invalid", "Tundra", "Water", "Shoreline"];
 var terrainColours = ["Green", "White", "#89cff0", "White"];
@@ -24,15 +24,17 @@ var buildingDescriptions = ["A nice, happy place to get some work done.", "Benea
                             "The grinding of gears can be heard within."];
 
 var buildingCosts = [100, 500, 2500];
-var buildingIncome = [20, 50, 1000];
+var buildingIncome = [20, 50, 10000];
 var buildingSize = [1, 1, 2]; // Size of each building (i x i) on the grid
 var buildingImages = ["brown", "grey", "#FFFF88"];
 var penguinCapacity = [20, 100, 1000];
 
 //Penguin counters/logic
 var penguinImage = "Yellow";
-var penguinCost = 100;
-var idlePenguins = 0;
+var penguinCost = 5; // Initial cost : Every purchased penguin increments this cost
+var idlePenguins = 0; // The number of penguins sitting idly in the pen
+var totalPenguins = 0; // The total number of penguins owned : Initially 0, calculated on load / purchase
+var penguinCostScale = 0.1; // The scale at which, per penguin, penguin cost scales
 
 // Income-Handling Variables
 var incomeGeneratedPerBuildingType = [0, 0, 0]; // Used to track how much each building type is producing per second
@@ -66,7 +68,8 @@ var buildingShopWidth = 300;
 var tilesHoveredOver = [[null, null, null], [null, null, null], [null, null, null]];
 
 // Manages initialization of all canvas-based elements
-function createjsinit(){
+function createjsinit()
+{
   stageCanvas = new createjs.Stage("gamecanvas");
   // Initialize major map components
   drawMap(); // Draw map in 'center' of the canvas (offset from y-axis by iMapOffsetX)
@@ -75,15 +78,16 @@ function createjsinit(){
   drawShop(); // Draw shop to the right of the map (offset from y-axis by iMapOffsetX + iMapSize)
 
   stageCanvas.enableMouseOver(); // Enables mouseover events for the canvas
-  // Load buildings
+  // Load all buildings and upgrades
   loadAllBuildings();
   loadAllUpgrades();
 
-  // Sets up ticker
+  // Sets up ticker (Stage will update every 40 seconds)
   createjs.Ticker.setFPS(40);
   createjs.Ticker.addEventListener("tick",tick);
 }
 
+// If the user is an admin, several debug buttons are created
 function admin()
 {
   if (gon.iadmin == true)
@@ -165,8 +169,9 @@ function drawPenguinShop()
   var pPen = new createjs.Container();
 
   pPen.name = "pPen";
-  pPurchaseButton.name = "pPurchaseButton";
+  pPurchaseButton.name = "purchase";
 
+  // Define the width and height for all components
   pShop.width = iMapOffsetX - 5; // Width is the same as clicking area's width
   pShop.height = 600;
 
@@ -190,6 +195,7 @@ function drawPenguinShop()
   pShop.addChild(pPurchaseButton);
   pShop.addChild(pPen)
 
+  // Create the two 'buttons' used to purchase and place penguins
   instantiatePenguinShopButton(pPurchaseButton, pShop);
   instantiatePenguinPen(pPen, pShop);
 
@@ -247,6 +253,7 @@ function instantiatePenguinShopButton(button, pShop)
   //Manage text appearance
   pshopButtonText = new createjs.Text("Purchase Penguin", "14px Arial", "black");
   pshopButtonText.text += "\nCost: " + penguinCost + " toys";
+  pshopButtonText.name = "text";
 
   pshopButtonText.x = 5;
   pshopButtonText.y = 5;
@@ -338,6 +345,8 @@ function addPenguinShopButtonEvent(pShopButton, pShop) {
         gon.iToys = gon.iToys - penguinCost;
         idlePenguins = idlePenguins + 1;
         updatePenValue(pShop.getChildByName("pPen"));
+        penguinCost = Math.ceil(penguinCost * (1.0 + penguinCostScale));
+        updatePenguinCost(pShop.getChildByName("purchase"));
       }
       else
       {
@@ -352,6 +361,13 @@ function addPenguinShopButtonEvent(pShopButton, pShop) {
 function updatePenValue(pPen)
 {
     pPen.getChildByName("text").text = "Idle Penguins: " + idlePenguins;
+}
+
+// Updates the cost of penguins : Called whenever the total number of penguins changes
+function updatePenguinCost(purchaseButton)
+{
+  purchaseButton.getChildByName("text").text = "Purchase Penguin";
+  purchaseButton.getChildByName("text").text += "\nCost: " + penguinCost;
 }
 
 // END OF PENGUIN SHOP CODE
@@ -413,6 +429,8 @@ function drawShop()
   upgradeShop.mouseChildren = true;
 }
 
+// Creates shop buttons to purchase each building
+// Handles visuals and hitboxes : Calls to addButtonEvents to make buttons responsive
 function instantiateBuildingButtons(buildingShop, buildingShopWidth)
 {
   var buildingButtonHeight = stageCanvas.canvas.height / numberOfBuildingTypes;
@@ -463,6 +481,7 @@ function instantiateBuildingButtons(buildingShop, buildingShopWidth)
   }
 }
 
+// Sets up a building button's purchase and tooltip events
 function addButtonEvents(buildingButton, iIndex, buttonTooltip, buttonWidth, buttonHeight)
 {
   buildingButton.iIndex = iIndex; // Index of the button
@@ -507,7 +526,7 @@ buildingButton.on("mouseout", function(event)
 });
 }
 
-
+// Displays a shop button's tooltip : Responsible for building and upgrade button tooltips
 function displayShopButtonTooltip(originalX, originalY, button, tooltip, buttonWidth, buttonHeight)
 {
   var stageX = stageCanvas.mouseX;
@@ -571,6 +590,9 @@ function loadAllBuildings()
 
         pressobject = createBuilding(iType, colour);
         pressobject.currentPenguins = gon.strBuildingMapSave[x / iBaseTileLength][y / iBaseTileLength][1];
+        window.alert(totalPenguins);
+        totalPenguins += Number(pressobject.currentPenguins); // This is odd behaviour, given that the rest of the arithmetic treats currentPenguins as an int.
+        window.alert(totalPenguins);
         // Building has penguins in it already
         if (pressobject.currentPenguins != 0)
         {
@@ -583,6 +605,9 @@ function loadAllBuildings()
       }
     }
   }
+  window.alert(totalPenguins);
+  penguinCost = Math.ceil(penguinCost * Math.pow((1.0 + penguinCostScale), totalPenguins));
+  updatePenguinCost(pShop.getChildByName("purchase"));
 }
 
 function loadAllUpgrades()
@@ -1016,8 +1041,8 @@ function displayTileTooltip(originalX, originalY, gridSquare, tileTooltip)
   var stageX = stageCanvas.mouseX;
   var stageY = stageCanvas.mouseY;
   // Determines whether the mouse has moved and whether the user has moved to a different tile
-  if (Math.abs(originalX - stageX) < iBaseTileLength / 2 && Math.abs(originalY - stageY) < iBaseTileLength / 2
-    && Math.abs(gridSquare.x - stageX) < iBaseTileLength && Math.abs(gridSquare.y - stageY) < iBaseTileLength
+  if (Math.abs(originalX - stageX) < gridSquare.width / 2 && Math.abs(originalY - stageY) < gridSquare.width / 2
+    && Math.abs(gridSquare.x - stageX) < gridSquare.width && Math.abs(gridSquare.y - stageY) < gridSquare.width
     && (stageX >= gridSquare.x) && (stageY >= gridSquare.y) )
   {
     // Updates tooltip text
