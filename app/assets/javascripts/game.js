@@ -1309,6 +1309,10 @@ function initialize()
 
     interval = setInterval(updateClock(gon.iTimeLeft), 1000);
     admin();
+
+    window.odometerOptions = {
+      duration: 800
+    };
 }
 
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
@@ -1334,6 +1338,7 @@ function recalculateIncome()
 function updateToys()
 {
   document.getElementById("toys").innerHTML = gon.iToys.toFixed(2) + " toys";
+  document.getElementById("income").innerHTML = fTotalPassiveIncome.toFixed(2) + " toys per second";
 }
 
 var callSave = function(){
