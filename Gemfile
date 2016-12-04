@@ -6,6 +6,7 @@ gem 'gon'
 gem 'rails', '4.2.5'
 gem 'bcrypt', '3.1.11'
 gem 'bootstrap-sass', '3.3.6'
+gem 'jquery-ui-rails'
 
 group :development, :test do
 	gem 'jasmine'

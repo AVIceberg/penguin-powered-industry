@@ -67,6 +67,21 @@ var buildingShopWidth = 300;
 // Tracks which tiles are currently illuminated / hovered over by a building during placement
 var tilesHoveredOver = [[null, null, null], [null, null, null], [null, null, null]];
 
+// Event Handlers : Used to define events, determine which events are active, and handle their actions
+var numberOfEvents = 3;
+var eventNames = ["Blizzard", "A collapsed mine!", "Penguin revolt!"];
+var eventDescriptions = ["A blizzard has swept over your land, leaving the roads unnavigatable. All toy shipments from distant workplaces are suspended until the blizzard ends.",
+                         "A mine has collapsed, leaving desperate penguin workers trapped and afraid.", "Your cruel antics and poor hygiene have driven the penguins to revolt!"];
+
+// [choiceName, affectedObject, type of effect, amount / value, time]
+// AffectedObjects : -1 == general income ; 0+ == buildings of that type ; -2 == total toys
+var eventEffectsChoiceOne = [["Okay", -1, "delay", null, 1000 * 60 * 2], ["Let them tire themselves out", -1, "reduce", 10000, 1000 * 60 * 1], ["Abandon the mine",0, "destroy", 1, null]];
+var eventEffectsChoiceTwo = [[null, null, null, null, null], ["Pay them off", -2, "change", -2000, null], ["Stage a rescue mission!", -2, "change", -3000, null]];
+
+// Event Helpers : Used by various functions to track time-delayed effects or changes
+var previousIncome; // Tracks the income at the start of a delay period
+var realNumberOfBuildingTypes;
+
 // Manages initialization of all canvas-based elements
 function createjsinit()
 {
@@ -1310,9 +1325,12 @@ function initialize()
     interval = setInterval(updateClock(gon.iTimeLeft), 1000);
     admin();
 
+    // Sets the amount of time the odometer expects the animation to go on for.
     window.odometerOptions = {
       duration: 800
     };
+
+    setTimeout(callEvent, 1000 * 5);
 }
 
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
@@ -1379,10 +1397,10 @@ function updateClock(time_left) {
       clearInterval(timeinterval);
       if(gon.iRequiredToys < gon.iToys) {
         var endDecision = confirm("You have won the game!\nClick OK to proceed to the next level\nAlternatively, you can click Cancel to stay on this level");
-        window["resetGame"](endDecision);
+        resetGame(endDecision);
       }
       else {
-        window["resetGame"](false);
+        resetGame(false);
       }
     }
     //Clear Error innerHTML after 15 seconds
@@ -1390,18 +1408,12 @@ function updateClock(time_left) {
       clearErrors();
       errorClearInterval = 0;
     }
-    if(eventClearInterval == 300) {
-      clearEvents();
-    }
-    // Events
-    if(time_left == 2100 || time_left == 1500 || time_left == 900 || time_left == 540) {         //35 mins, 25 mins, 15 mins, 9 mins
-      eventChooser(randomIntFromInterval(1, 3));
-      eventClearInterval = 0;
-    }
+
     // Automatic Save
     if(((time_left / 60) % iSaveInterval == 0) && (time_left % 60 == 0)) {
       callSave();
     }
+
     errorClearInterval = errorClearInterval + 1;
     time_left = time_left - 1;
 
@@ -1426,35 +1438,154 @@ function clearEvents() {
 function randomIntFromInterval(min,max) {                                //imported code!
     return Math.floor(Math.random()*(max-min+1)+min);
 }
-function eventChooser(integer) {
-    switch(integer) {
-      case 1:
-        firstEvent();
-        break;
-      case 2:
-        secondEvent();
-        break;
-      case 3:
-        thirdEvent();
-        break;
+
+// Calls an event, dispatching its logic and setting up the timer until the next event
+function callEvent()
+{
+  // Choose an event at random and activate it
+  var iEvent = randomIntFromInterval(0, numberOfEvents - 1);
+  var iSecondsUntilNextEvent = randomIntFromInterval(30, 60 * 5);
+  var iDecision;
+  var bChosenOption;
+  var eventInfo;
+  var option1;
+  var option2;
+
+  document.getElementById("event-text").innerHTML = eventNames[iEvent] + "\n" + eventDescriptions[iEvent];
+
+  // Setup dialog buttons
+  option1 = eventEffectsChoiceOne[iEvent][0];
+  var dialog_buttons = {};
+  dialog_buttons[option1] = function(){
+     startEventLogic(iEvent, true, iSecondsUntilNextEvent);
+     $( this ).dialog( "close" );
+  }
+  if (eventEffectsChoiceTwo[iEvent][0] != null)
+  {
+    option2 = eventEffectsChoiceTwo[iEvent][0];
+    dialog_buttons[option2] = function() {
+      startEventLogic(iEvent, false, iSecondsUntilNextEvent);
+      $( this ).dialog( "close" );
     }
-}
-function firstEvent() {
-  document.getElementById("events").innerHTML = firstEventText;
-  //do something
-}
-function secondEvent() {
-  document.getElementById("events").innerHTML = secondEventText;
-  //do something
-}
-function thirdEvent() {
-  document.getElementById("events").innerHTML = thirdEventText;
-  //do something
+  }
+
+$('#event-popup').dialog({ buttons: dialog_buttons });
+// Sets up event window and initiates the correct event when an option is chosen.
+$( function() {
+  $( "#event-popup" ).dialog({
+    resizable: false,
+    height: "auto",
+    width: 400,
+    modal: true,
+    option1: eventEffectsChoiceOne[iEvent][0],
+    option2: eventEffectsChoiceTwo[iEvent][0]
+  });
+});
 }
 
+function startEventLogic(iEvent, bChosenOption, iSecondsUntilNextEvent)
+{
+  // Grab the information associated with the event based on the user's decision
+  if (bChosenOption == true)
+  {
+    eventInfo = eventEffectsChoiceOne[iEvent];
+  }
+  else
+  {
+    eventInfo = eventEffectsChoiceTwo[iEvent];
+  }
 
-/******EVENT TEXT********/
+  // Grabs what the event is working with to determine which function to call (income, toys, buildings, etc).
+  iDecision = eventInfo[1];
+  switch(iDecision)
+  {
+    case -2:
+      modifyToys(iEvent, eventInfo);
+      break;
+    case -1:
+      modifyIncome(iEvent, eventInfo);
+      break;
+    default:
+      modifyBuilding(iEvent, eventInfo);
+      break;
+  }
+  // Call next event!
+  setTimeout(callEvent, 1000 * iSecondsUntilNextEvent);
+}
 
-var firstEventText = "Some flavour text about the first type of event";
-var secondEventText = "Some flavour text about the second type of event";
-var thirdEventText = "Some flavour text about the third type of event";
+// AGGREGATE FUNCTIONS -- Used to direct events to the required helpers
+
+// Aggregate function for all events that modify the number of toys a user has.
+function modifyToys(iEvent, eventInfo)
+{
+  var strEventType = eventInfo[2];
+
+  switch (strEventType)
+  {
+    case 'change':
+      changeCurrentToys(iEvent, eventInfo);
+      break;
+    default:
+      break;
+  }
+}
+
+function modifyIncome(iEvent, eventInfo)
+{
+  var strEventType = eventInfo[2];
+
+  switch (strEventType)
+  {
+    case 'delay':
+      delayIncome(iEvent, eventInfo);
+      break;
+    default:
+      break;
+  }
+}
+
+// END OF AGGREGATE EVENTS
+// START OF EVENT TYPE FUNCTIONS
+
+// Directly changes the number of toys the user has by adding a specific value (can be negative)
+function changeCurrentToys(iEvent, eventInfo)
+{
+  fAmount = eventInfo[3]; // Grab the amount to be added to the users' toys
+  if (fAmount < 0 && fAmount > gon.iToys)
+  {
+    // Placeholder message! The user should not have gotten this far (should've been stopped when choosing an event)
+    document.getElementById("events").innerHTML = "You do not have the correct number of toys!";
+    gon.iToys = 0;
+  }
+  else
+  {
+    gon.iToys += fAmount;
+  }
+}
+
+function delayIncome(iEvent, eventInfo)
+{
+  fAmount = eventInfo[3];
+  fTime = eventInfo[4];
+  previousIncome = fTotalPassiveIncome;
+
+  // If amount is null, all toys are stored until later
+  if (fAmount == null)
+  {
+    fTotalPassiveIncome = 0;
+    realNumberOfBuildingTypes = numberOfBuildingTypes;
+    numberOfBuildingTypes = 0; // Prevents income from recalculating
+  }
+  setTimeout(returnIncome, fTime, fAmount, fTime, realNumberOfBuildingTypes);
+}
+
+// At the end of a delayed income period, the entire sum that should have been earned is returned to the user.
+// Currently underrewards, excluding income that would've been gained during that time.
+function returnIncome(fAmount, fTime, realNumberOfBuildingTypes)
+{
+    numberOfBuildingTypes = realNumberOfBuildingTypes
+    recalculateIncome();
+    gon.iToys += previousIncome * fTime / 1000;
+}
+
+// END OF EVENT TYPE FUNCTIONS
