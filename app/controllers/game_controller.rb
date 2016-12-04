@@ -15,6 +15,7 @@ class GameController < ApplicationController
       gon.iMapOffsetX = 200 # Offset left on the canvas for other areas to be added to the left of the map
       gon.iBaseTileLength = 100
       gon.iUpgradeStates = [0, 0, 0];
+      gon.iIdlePenguins = @user.idlepenguins
 
       gon.iadmin = @user.admin
 
@@ -54,6 +55,7 @@ class GameController < ApplicationController
       @user.map = JSON.parse(params[:map])
       @user.building_map = (JSON.parse(params[:building_map]))
       @user.upgrade_states = JSON.parse(params[:upgrade_states])
+      @user.idlepenguins = params[:idle_penguins]
       @user.save
     end
     render js: ''

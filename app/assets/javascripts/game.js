@@ -32,7 +32,7 @@ var penguinCapacity = [20, 100, 1000];
 //Penguin counters/logic
 var penguinImage = "Yellow";
 var penguinCost = 5; // Initial cost : Every purchased penguin increments this cost
-var idlePenguins = 0; // The number of penguins sitting idly in the pen
+//var idlePenguins = 0; // The number of penguins sitting idly in the pen : Handled by a gon variable so penguins in pen are saved!
 var totalPenguins = 0; // The total number of penguins owned : Initially 0, calculated on load / purchase
 var penguinCostScale = 0.1; // The scale at which, per penguin, penguin cost scales
 
@@ -137,7 +137,7 @@ function drawClickingArea()
     {
       if (pressobject.name == "penguin")
       {
-        idlePenguins++;
+        gon.iIdlePenguins++;
         updatePenValue(pShop.getChildByName("pPen"));
         stageCanvas.removeChild(temporaryCursor);
         pressobject = null;
@@ -288,7 +288,7 @@ function addPenguinButtonEvent(pPen)
     {
       if (pressobject.name == "penguin")
       {
-        idlePenguins++;
+        gon.iIdlePenguins++;
         updatePenValue(pPen);
         stageCanvas.removeChild(temporaryCursor);
         pressobject = null;
@@ -301,11 +301,11 @@ function addPenguinButtonEvent(pPen)
       }
     }
     else {
-      if(idlePenguins > 0) {
+      if(gon.iIdlePenguins > 0) {
         var penguin = createPenguin();
         if (penguin)
         {
-          idlePenguins = idlePenguins - 1;
+          gon.iIdlePenguins = gon.iIdlePenguins - 1;
           updatePenValue(pPen);
           penguin.dispatchEvent("click");
         }
@@ -326,7 +326,7 @@ function addPenguinShopButtonEvent(pShopButton, pShop) {
       {
         if (pressobject.name == "penguin")
         {
-          idlePenguins++;
+          gon.iIdlePenguins++;
           updatePenValue(pShop.getChildByName("pPen"));
           stageCanvas.removeChild(temporaryCursor);
           pressobject = null;
@@ -343,7 +343,7 @@ function addPenguinShopButtonEvent(pShopButton, pShop) {
       //Logic for buying penguins
       if(gon.iToys >= penguinCost) {
         gon.iToys = gon.iToys - penguinCost;
-        idlePenguins = idlePenguins + 1;
+        gon.iIdlePenguins = gon.iIdlePenguins + 1;
         updatePenValue(pShop.getChildByName("pPen"));
         penguinCost = Math.ceil(penguinCost * (1.0 + penguinCostScale));
         updatePenguinCost(pShop.getChildByName("purchase"));
@@ -360,7 +360,7 @@ function addPenguinShopButtonEvent(pShopButton, pShop) {
 // Updates the number of penguins visually displayed in the pen
 function updatePenValue(pPen)
 {
-    pPen.getChildByName("text").text = "Idle Penguins: " + idlePenguins;
+    pPen.getChildByName("text").text = "Idle Penguins: " + gon.iIdlePenguins;
 }
 
 // Updates the cost of penguins : Called whenever the total number of penguins changes
@@ -499,7 +499,7 @@ function addButtonEvents(buildingButton, iIndex, buttonTooltip, buttonWidth, but
   {
     if (pressobject.name == "penguin")
     {
-      idlePenguins++;
+      gon.iIdlePenguins++;
       updatePenValue(pShop.getChildByName("pPen"));
       stageCanvas.removeChild(temporaryCursor);
       pressobject = null;
@@ -590,9 +590,7 @@ function loadAllBuildings()
 
         pressobject = createBuilding(iType, colour);
         pressobject.currentPenguins = gon.strBuildingMapSave[x / iBaseTileLength][y / iBaseTileLength][1];
-        window.alert(totalPenguins);
         totalPenguins += Number(pressobject.currentPenguins); // This is odd behaviour, given that the rest of the arithmetic treats currentPenguins as an int.
-        window.alert(totalPenguins);
         // Building has penguins in it already
         if (pressobject.currentPenguins != 0)
         {
@@ -605,8 +603,9 @@ function loadAllBuildings()
       }
     }
   }
-  window.alert(totalPenguins);
+  totalPenguins += gon.iIdlePenguins;
   penguinCost = Math.ceil(penguinCost * Math.pow((1.0 + penguinCostScale), totalPenguins));
+  updatePenValue(pShop.getChildByName("pPen"));
   updatePenguinCost(pShop.getChildByName("purchase"));
 }
 
@@ -740,7 +739,7 @@ function deductCost(iIndexOfBuildingType)
 function refundBuildingPurchase(iType)
 {
   if(iType == 100) {                     //100 is set as penguin
-    idlePenguins = idlePenguins + 1;
+    gon.iIdlePenguins = gon.iIdlePenguins + 1;
   }
   else {
     gon.iToys += buildingCosts[iType];
@@ -942,7 +941,7 @@ function buildingPlacementEvent(gridSquare)
         // If the tile does not contain a building
         if(!gridSquare.isBuilding)
         {
-          idlePenguins = idlePenguins + 1;
+          gon.iIdlePenguins = gon.iIdlePenguins + 1;
           updatePenValue(pShop.getChildByName("pPen")); // Updates the penguin pen counter
           pressobject = null;
           return;
@@ -953,7 +952,7 @@ function buildingPlacementEvent(gridSquare)
           // If building is full, do not add a penguin to it
           if (building.currentPenguins >= penguinCapacity[building.type])
           {
-            idlePenguins = idlePenguins + 1;
+            gon.iIdlePenguins = gon.iIdlePenguins + 1;
             updatePenValue(pShop.getChildByName("pPen")); // Updates the penguin pen counter
             pressobject = null;
             return;
@@ -1278,8 +1277,8 @@ function tick() {
     stageCanvas.update();
 }
 
-// GAME LOGIC //
-// Initializes all necessary JS variables and adds required events
+// BASIC GAME LOGIC //
+// Initializes all necessary JS variables and adds required events for tracking base logic (income, etc)
 function initialize()
 {
     document.getElementById("nickname").innerHTML = gon.strNickname + "'s Workshop";
@@ -1319,8 +1318,9 @@ var callSave = function(){
 $.ajax({
   url: "save",
   type: "put",
-  data: {toys: Number(gon.iToys), time_left: Number(gon.iTimeLeft), map: JSON.stringify(gon.strMapSave),
-     building_map: JSON.stringify(gon.strBuildingMapSave), upgrade_states: JSON.stringify(gon.iUpgradeStates)}
+  data: {toys: Number(gon.iToys), time_left: Number(gon.iTimeLeft), idle_penguins: Number(gon.iIdlePenguins),
+     map: JSON.stringify(gon.strMapSave), building_map: JSON.stringify(gon.strBuildingMapSave),
+     upgrade_states: JSON.stringify(gon.iUpgradeStates)}
 });
 }
 
