@@ -13,3 +13,8 @@
  *= require_tree .
  *= require_self
  */
+@media (min-width: 1200px) {
+  .navbar .container-fluid {
+    max-width: 960px;
+  }
+}
