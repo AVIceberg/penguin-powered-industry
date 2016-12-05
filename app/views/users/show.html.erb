@@ -1,18 +1,42 @@
 <% provide(:title, 'Profile') %>
 <h1> Profile for <%= @user.nickname %> </h1>
 
-<div class="profile_container"> 
-	<%= gravatar_for @user %> 
-	<p class="bigger"> Nickname: <%= @user.nickname %> </p>
-	<p class="bigger"> Email Address: <%= @user.email %> </p>
-	<p class="bigger"> Current Level: <%= @user.level %> </p>
-	<p class="bigger"> Maximum Toys Ever Produced: <%= @user.max %> </p>
+<div class="profile_container">
+			<div class="row">
+				<div class="col-sm-4">
+					<%= gravatar_for @user %>
+				</div>
+				<div class="col-sm-8 jumbotron">
+					<table id="profile">
+						<tr>
+							<td colspan="2">
+								<h1 class="text-left"><small>Nickname</small></h1>
+								<h1 class="text-left"><%= @user.nickname %></h1>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<h1 class="text-left"><small>Email Address</small></h1>
+								<h1 class="text-left"><%= @user.email %></h1>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<h2 class="text-left"><small>Current Level</small></h2>
+								<h2 class="text-left"><%= @user.level %></h2>
+							</td>
+							<td>
+								<h2 class="text-left"><small>Max. Toys</small></h2>
+								<h2 class="text-left"><%= @user.max %></h2>
+							</td>
+						</tr>
+					</table>
+					<div class="spaces"></div>
+					<% if user_is_logged_in? %>
+					  <% if session[:id] == @user.id or User.find_by_id(session[:id]).admin == true%>
+					    <%= button_to 'Edit profile', edit_user_path(@user), :class => "btn btn-md btn-danger btn-block", :method => :get %>
+					  <% end %>
+					<% end %>
+				</div>
+			</div>
 </div>
-
-<div class="spaces"></div>
-
-<% if user_is_logged_in? %>
-  <% if session[:id] == @user.id or User.find_by_id(session[:id]).admin == true%>
-    <%= button_to 'Edit profile', edit_user_path(@user), :class => "button", :method => :get %>
-  <% end %>
-<% end %>

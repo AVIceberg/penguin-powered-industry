@@ -88,5 +88,28 @@ th{
 }
 
 td{
-  text-align: center;
+  text-align:
+}
+
+#profile h1{
+  padding: 0;
+  margin: 0;
+  margin-top: 5px;
+}
+
+#profile h1 small{
+  font-size: 80%;
+}
+
+#profile h2{
+  padding: 0;
+  margin: 0;
+  margin-top: 2px;
+  font-size: 200%;
+}
+
+.profile_container .jumbotron{
+  background-color: rgba(242, 57, 66, 0.15);
+  padding: 1em;
+  margin: 0;
 }
