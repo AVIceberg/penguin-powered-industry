@@ -1,13 +1,24 @@
 <%= include_gon %>
 <div class="errors" id="error"></div>
 <div class="event" id="events"></div><br>
-  <div id="user-options">
-    <button id="save-button">Save</button>
+
+<div id="infobar">
+  <div class="jumbotron">
+    <div class="row">
+      <div id="col-md-4" >
+        <button id="save-button" class="btn btn-danger">Save</button>
+      </div>
+      <!-- <div class="col-md-3"></div> -->
+      <div class="col-md-8">
+        <div class="timer">
+          <span id="minutes"></span><span> minutes</span>
+          <span id="seconds"></span><span> seconds left to save Christmas!</span>
+        </div>
+      </div>
+    </div>
   </div>
-<div class="timer">
-  <span id="minutes"></span><span> minutes</span>
-  <span id="seconds"></span><span> seconds left to save Christmas!</span>
 </div>
+
   <div id="click-subsection">
     <h2 id="nickname"></h2>
     <h3 id="toys"></h3>

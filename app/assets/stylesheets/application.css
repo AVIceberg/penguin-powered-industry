@@ -113,3 +113,9 @@ td{
   padding: 1em;
   margin: 0;
 }
+
+#infobar .jumbotron{
+  background-color: rgba(242, 57, 66, 0.15);
+  padding: 1em;
+  margin: 0;
+}
