@@ -61,7 +61,7 @@ var upgradeInfoHelper = [null, null, null, null, null, null, null, null, null, n
 var iSaveInterval = 2;
 var iMapSize = 800;
 var iMapOffsetX = 200;
-var iBaseTileLength = 100;
+var iBaseTileLength = 50;
 var buildingShopWidth = 300;
 
 // Tracks which tiles are currently illuminated / hovered over by a building during placement
@@ -648,7 +648,7 @@ function createBuilding(iIndexOfBuildingType, colour)
   // Builds building graphic
   var building = new createjs.Shape();
   building.graphics.beginStroke("black").beginFill(colour)
-  .drawCircle(50, 50, 50);
+  .drawCircle(25, 25, 25);
 
   // Sets building properties and events
   building.type = iIndexOfBuildingType;
@@ -674,14 +674,14 @@ function buildingEventSetup(building)
       temporaryCursor = event.target.clone(true);
       temporaryCursor.type = event.target.type;
       temporaryCursor = drawBuildingForMapPlacement(temporaryCursor, event.target.size);
-      temporaryCursor.x = stageCanvas.mouseX - 50;
-      temporaryCursor.y = stageCanvas.mouseY - 50;
+      temporaryCursor.x = stageCanvas.mouseX - 15;
+      temporaryCursor.y = stageCanvas.mouseY - 15;
       stageCanvas.addChild(temporaryCursor);
 
       // While building is clicked, stageCanvas will update temporaryCursor's coordinates on mousemove
       stageCanvas.on("stagemousemove", function(event2) {
-        temporaryCursor.x = event2.target.mouseX - 50;
-        temporaryCursor.y = event2.target.mouseY - 50;
+        temporaryCursor.x = event2.target.mouseX - 15;
+        temporaryCursor.y = event2.target.mouseY - 15;
       });
 
       // Set pressobject to be a copy of the event.target
@@ -768,7 +768,7 @@ function drawBuildingForMapPlacement(building, size)
   var colour = getBuildingImage(building.type); // Green == Error
   building.graphics.clear("White");
 
-  building.graphics.beginFill(colour).drawCircle(50 * size, 50 * size, 50 * size);
+  building.graphics.beginFill(colour).drawCircle(25 * size, 25 * size, 25 * size);
   return building;
 }
 
@@ -1551,6 +1551,7 @@ function modifyIncome(iEvent, eventInfo)
 function changeCurrentToys(iEvent, eventInfo)
 {
   fAmount = eventInfo[3]; // Grab the amount to be added to the users' toys
+  window.alert(fAmount);
   if (fAmount < 0 && fAmount > gon.iToys)
   {
     // Placeholder message! The user should not have gotten this far (should've been stopped when choosing an event)
