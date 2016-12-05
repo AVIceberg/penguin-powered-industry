@@ -1,0 +1,61 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+#
+# one:
+#   fname: MyString
+#   lname: MyString
+#   nickname: MyString
+#   email: MyString
+#
+# two:
+#   fname: MyString
+#   lname: MyString
+#   nickname: MyString
+#   email: MyString
+
+Kate:
+  fname: Kate
+  lname: Irrelevant
+  nickname: Kate
+  email: Kate@Kate.org
+  id: 0
+  level: 1
+  max: 0
+  admin: true
+  password_digest: <%= BCrypt::Password.create('testing') %>
+
+Alex:
+  fname: Alex
+  lname: Zheng
+  nickname: Alex
+  id: 1
+  email: Zheng@Zheng.com
+  level: 1
+  max: 0
+  admin: false
+  password_digest: <%= BCrypt::Password.create('testing') %>
+
+Bob:
+  fname: Bob
+  lname: Bobbington
+  nickname: Bob
+  email: Bob@Bob.org
+  id: 2
+  level: 1
+  max: 0
+  admin: false
+  password_digest: <%= BCrypt::Password.create('testing') %>
+  
+Cat:
+  fname: Cate
+  lname: Lastcat
+  nickname: cat
+  email: cat@cat.org
+  id: 3
+  level: 2
+  max: 0
+  admin: false
+  password_digest: <%= BCrypt::Password.create('testing') %>
+  timeleft: 1000
+  toys: 0
+  building_map: [["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"],["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"],["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"],["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"],["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"],["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"],["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"],["-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"]]
+  map: [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 3, 1, 1, 1, 1], [1, 1, 3, 2, 3, 1, 1, 1], [1, 1, 3, 2, 3, 3, 3, 3], [1, 1, 3, 2, 2, 2, 2, 2], [1, 1, 2, 2, 3, 3, 3, 3]]

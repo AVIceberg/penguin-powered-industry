@@ -1,8 +1,18 @@
 source 'https://rubygems.org'
 ruby '2.3.1'
 
+gem 'gon'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.2.5'
+gem 'bcrypt', '3.1.11'
+gem 'bootstrap-sass', '3.3.6'
+
+group :development, :test do
+	gem 'jasmine'
+	gem 'capybara'
+	gem 'rspec-rails', '~> 3.5'
+	gem 'poltergeist'
+end
 # Use postgresql as the database for Active Record
 gem 'pg'
 gem 'rails_12factor', group: :production
@@ -31,7 +41,7 @@ gem 'spring',        group: :development
 # gem 'bcrypt', '~> 3.1.7'
 
 gem 'puma'
-
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw]
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 

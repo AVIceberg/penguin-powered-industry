@@ -17,3 +17,8 @@
 
 # Ignore ruby-version
 /.ruby-version
+
+/public
+
+Gemfile
+Gemfile.lock

@@ -1,5 +1,20 @@
 Rails.application.routes.draw do
-  resources :widgets
+  get '/signup', to: 'users#new'
+ # post '/signup', to: 'users#new'
+  post '/login', to: 'welcome#login'
+  get '/about', to: 'welcome#about'
+  get '/game', to: 'game#gamepage'
+  put '/save', to: 'game#save'
+  put '/reset', to: 'game#reset'
+
+
+  resources :application do
+    member do
+      delete 'logout'
+    end
+  end
+
+  resources :users
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

@@ -1,0 +1,25 @@
+// Place all the styles related to the Users controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+// Note: Current CSS is temporary and designed to raise readability during design.
+// All graphics / styles should be considered placeholders for this iteration.
+
+table, tr, td, th {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  text-align: left;
+  vertical-align: middle;
+  margin-left: 15px;
+  margin-top: 20px;
+
+}
+
+th, td {
+  padding: 5px;
+}
+
+td {
+  height: 50px;
+  width: 100px;
+}

@@ -1,0 +1,18 @@
+<% provide(:title, 'Profile') %>
+<h1> Profile for <%= @user.nickname %> </h1>
+
+<div class="profile_container"> 
+	<%= gravatar_for @user %> 
+	<p class="bigger"> Nickname: <%= @user.nickname %> </p>
+	<p class="bigger"> Email Address: <%= @user.email %> </p>
+	<p class="bigger"> Current Level: <%= @user.level %> </p>
+	<p class="bigger"> Maximum Toys Ever Produced: <%= @user.max %> </p>
+</div>
+
+<div class="spaces"></div>
+
+<% if user_is_logged_in? %>
+  <% if session[:id] == @user.id or User.find_by_id(session[:id]).admin == true%>
+    <%= button_to 'Edit profile', edit_user_path(@user), :class => "button", :method => :get %>
+  <% end %>
+<% end %>
