@@ -18,3 +18,35 @@
     max-width: 960px;
   }
 }
+
+.navbar{
+  background-color: #941d26;
+  /*color: #f7f9f2;*/
+}
+
+.navbar-header {
+  font-weight: bold;
+  font-size: 200%;
+  /*color: #f7f9f2;*/
+}
+
+/*modify button style*/
+.btn {
+  border: 0 none;
+}
+
+.btn:focus, .btn:active:focus, .btn.active:focus {
+  outline: 0, none;
+}
+
+.btn-primary {
+  background-color: #406c35;
+  font-weight: bold;
+  color: #f7f9f2;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active{
+  background-color: #deedcc;
+  font-weight: bold;
+  color: #f7f9f2;
+}
