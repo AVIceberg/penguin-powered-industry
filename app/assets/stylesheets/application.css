@@ -14,8 +14,8 @@
  *= require_self
  */
 @media (min-width: 1200px) {
-  .navbar .container-fluid {
-    max-width: 960px;
+  .navbar>.container-fluid, .container {
+    max-width: 1280px;
   }
 }
 
@@ -23,13 +23,13 @@
   background-color: #f23942;
 }
 
-.nav li{
-  color:white;
-}
-
 .navbar-brand {
   font-weight: bold;
   font-size: 200%;
+}
+
+.nav li a{
+  color: #f7f9f2;
 }
 
 /*modify button style*/
@@ -42,13 +42,23 @@
 }
 
 .btn-primary {
-  background-color: #a4af97;
+  background-color: #deedcc;
   font-weight: bold;
   color: #f7f9f2;
 }
 
 .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active{
-  background-color: #deedcc;
+  background-color: #a4af97;
   font-weight: bold;
   color: #f7f9f2;
+}
+
+.btn-danger{
+  background-color: #f23942;
+  font-weight: bold;
+}
+
+.btn-danger:hover, .btn-danger:focus, .btn-danger:active, .btn-danger.active{
+  background-color: #de343d;
+  font-weight: bold;
 }

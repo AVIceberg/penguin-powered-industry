@@ -5,7 +5,8 @@
 <%=form_tag("/login", method: "post") do %>
 
 <div class="row">
-  <div class="col-mid-6 col-md-offset-1">
+  <div class="col-md-4"></div>
+  <div class="col-md-4">
     <p>
       <%= label_tag :nickname, "Username:" %>
       <%= text_field_tag :nickname, "", class: 'form-control' %>
@@ -16,12 +17,26 @@
     </p>
 
     <p>
-      <%= submit_tag "Login", :id=> "Submit", class: 'form-control'  %> <br/>
+      <%= submit_tag "Login", :id=> "Submit", class: 'form-control btn btn-mid btn-danger'  %> <br/>
     </p>
   </div>
+  <div class="col-md-4"></div>
 </div>
 
 <% end %>
 
+<div class="row">
+  <div class="col-md-4"></div>
+  <div class="col-md-4">
+    <h2 class="text-center" style="color: #f23942; font-weight: bold; font-size: 150%;">OR</h2>
+  </div>
+  <div class="col-md-4"></div>
+</div>
 
-<h3><%= button_to "Sign up", signup_path, :method => "get" %></h3>
+<div class="row">
+  <div class="col-md-4"></div>
+  <div class="col-md-4">
+    <h3><%= button_to "Sign up", signup_path, class: "btn btn-md btn-danger btn-block", :method => "get" %></h3>
+  </div>
+  <div class="col-md-4"></div>
+</div>
