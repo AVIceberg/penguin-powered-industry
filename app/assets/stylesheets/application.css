@@ -20,14 +20,16 @@
 }
 
 .navbar{
-  background-color: #941d26;
-  /*color: #f7f9f2;*/
+  background-color: #f23942;
 }
 
-.navbar-header {
+.nav li{
+  color:white;
+}
+
+.navbar-brand {
   font-weight: bold;
   font-size: 200%;
-  /*color: #f7f9f2;*/
 }
 
 /*modify button style*/
@@ -40,7 +42,7 @@
 }
 
 .btn-primary {
-  background-color: #406c35;
+  background-color: #a4af97;
   font-weight: bold;
   color: #f7f9f2;
 }
