@@ -2,12 +2,12 @@
   <div class="container-fluid">
     <nav>
       <div class="navbar-header">
-        <a class="navbar-brand" href="/" style="color:#f7f9f2;">PPI</a>
+        <a class="navbar-brand" href="/">PPI</a>
       </div>
       <ul class="nav navbar-nav navbar-right">
-        <li><%= link_to "Home", root_path %></li>
-        <li><%= link_to "Leaderboard", users_path %></li>
-        <li><%= link_to "About", about_path %></li>
+        <li><%= link_to "Home", root_path, class: "nav-item" %></li>
+        <li><%= link_to "Leaderboard", users_path, class: "nav-item" %></li>
+        <li><%= link_to "About", about_path, class: "nav-item" %></li>
         <!--<li><%= link_to "Help", '#' %></li> Temporarily removed, as it serves no purpose -->
         <%if user_is_logged_in? %>
           <li><%= link_to "Game", game_path, method: :get%></li>

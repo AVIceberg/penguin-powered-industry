@@ -25,11 +25,31 @@
 
 .navbar-brand {
   font-weight: bold;
-  font-size: 200%;
+  font-size: 250%;
+}
+
+.navbar nav .navbar-header a{
+  color: #f7f9f2;
+}
+
+.navbar nav .navbar-header a:hover{
+  color: #c0c2bd;
+}
+
+.navbar .nav li .nav-item{
+  color: #f7f9f2;
+}
+
+.navbar .nav li .nav-item:hover{
+  color: #c0c2bd;
 }
 
 .nav li a{
   color: #f7f9f2;
+}
+
+.nav li a:hover{
+  color: #c0c2bd;
 }
 
 /*modify button style*/
