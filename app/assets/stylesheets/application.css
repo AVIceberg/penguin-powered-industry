@@ -82,3 +82,11 @@
   background-color: #de343d;
   font-weight: bold;
 }
+
+th{
+  text-align: center;
+}
+
+td{
+  text-align: center;
+}
