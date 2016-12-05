@@ -1360,7 +1360,6 @@ function updateToys()
 }
 
 var callSave = function(){
-  //window.alert(JSON.stringify(gon.strBuildingMapSave));
 $.ajax({
   url: "save",
   type: "put",
@@ -1453,34 +1452,78 @@ function callEvent()
 
   document.getElementById("event-text").innerHTML = eventNames[iEvent] + "\n" + eventDescriptions[iEvent];
 
-  // Setup dialog buttons
-  option1 = eventEffectsChoiceOne[iEvent][0];
-  var dialog_buttons = {};
-  dialog_buttons[option1] = function(){
-     startEventLogic(iEvent, true, iSecondsUntilNextEvent);
-     $( this ).dialog( "close" );
-  }
-  if (eventEffectsChoiceTwo[iEvent][0] != null)
-  {
-    option2 = eventEffectsChoiceTwo[iEvent][0];
-    dialog_buttons[option2] = function() {
-      startEventLogic(iEvent, false, iSecondsUntilNextEvent);
-      $( this ).dialog( "close" );
-    }
-  }
-
-$('#event-popup').dialog({ buttons: dialog_buttons });
-// Sets up event window and initiates the correct event when an option is chosen.
-$( function() {
-  $( "#event-popup" ).dialog({
-    resizable: false,
-    height: "auto",
-    width: 400,
-    modal: true,
-    option1: eventEffectsChoiceOne[iEvent][0],
-    option2: eventEffectsChoiceTwo[iEvent][0]
+  // Sets up event window and initiates the correct event when an option is chosen.
+  $( function() {
+    $( "#event-popup" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+      buttons: [
+      {
+        id: 'option1',
+        text: eventEffectsChoiceOne[iEvent][0],
+        click: function() {
+          startEventLogic(iEvent, true, iSecondsUntilNextEvent);
+          $( this ).dialog( "close" );
+        }
+      },
+      {
+        id: 'option2',
+        text: eventEffectsChoiceTwo[iEvent][0],
+        click: function() {
+          startEventLogic(iEvent, false, iSecondsUntilNextEvent);
+          $( this ).dialog( "close" );
+        }
+      }
+    ]
+    });
+    if (checkButtonValidity(iEvent, 2))
+      $('#option2').attr('disabled', true);
+    else if (checkButtonValidity(iEvent, 1))
+      $('#option1').attr('disabled', true);
   });
-});
+}
+
+// Checks whether the given option is valid for the user
+function checkButtonValidity(iEvent, option)
+{
+  var valid = true;
+  switch(option)
+  {
+    case '1':
+      switch (eventEffectsChoiceOne[iEvent][1])
+      {
+        case '-2':
+          valid = hasEnoughToys(iEvent, option);
+          break;
+      }
+      break;
+    case '2':
+      switch (eventEffectsChoiceTwo[iEvent][1])
+      {
+        case '-2':
+          valid = hasEnoughToys(iEvent, option);
+          break;
+      }
+    default:
+      break;
+  }
+  return valid;
+}
+
+// Checks whether the user has enough toys for the event occurring
+function hasEnoughToys(iEvent, option)
+{
+  switch(option)
+  {
+    case '1':
+      return ( Math.abs(eventEffectsChoiceOne[iEvent][2]) > gon.iToys && eventEffectsChoiceOne[iEvent][2] < 0 )
+      break;
+    case '2':
+      return ( Math.abs(eventEffectsChoiceTwo[iEvent][2]) > gon.iToys && eventEffectsChoiceTwo[iEvent][2] < 0 )
+      break;
+  }
 }
 
 function startEventLogic(iEvent, bChosenOption, iSecondsUntilNextEvent)
@@ -1551,11 +1594,11 @@ function modifyIncome(iEvent, eventInfo)
 function changeCurrentToys(iEvent, eventInfo)
 {
   fAmount = eventInfo[3]; // Grab the amount to be added to the users' toys
-  window.alert(fAmount);
-  if (fAmount < 0 && fAmount > gon.iToys)
+
+  if (fAmount < 0 && Math.abs(fAmount) > gon.iToys)
   {
     // Placeholder message! The user should not have gotten this far (should've been stopped when choosing an event)
-    document.getElementById("events").innerHTML = "You do not have the correct number of toys!";
+    //document.getElementById("events").innerHTML = "You do not have the correct number of toys!";
     gon.iToys = 0;
   }
   else
