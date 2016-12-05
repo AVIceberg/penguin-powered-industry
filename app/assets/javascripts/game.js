@@ -28,6 +28,7 @@ var buildingIncome = [20, 50, 10000];
 var buildingSize = [1, 1, 2]; // Size of each building (i x i) on the grid
 var buildingImages = ["brown", "grey", "#FFFF88"];
 var penguinCapacity = [20, 100, 1000];
+var buildingRecord = [[], [], []]; // Captures a copy of each building : Used to handle events
 
 //Penguin counters/logic
 var penguinImage = "Yellow";
@@ -75,12 +76,13 @@ var eventDescriptions = ["A blizzard has swept over your land, leaving the roads
 
 // [choiceName, affectedObject, type of effect, amount / value, time]
 // AffectedObjects : -1 == general income ; 0+ == buildings of that type ; -2 == total toys
-var eventEffectsChoiceOne = [["Okay", -1, "delay", null, 1000 * 60 * 2], ["Let them tire themselves out", -1, "reduce", 10000, 1000 * 60 * 1], ["Abandon the mine",0, "destroy", 1, null]];
-var eventEffectsChoiceTwo = [[null, null, null, null, null], ["Pay them off", -2, "change", -2000, null], ["Stage a rescue mission!", -2, "change", -3000, null]];
+var eventEffectsChoiceOne = [["Okay", -1, "delay", null, 1000 * 60 * 2], ["Abandon the mine", 1, "destroy", 1, null], ["Let them tire themselves out", -1, "change", -100, 1000 * 60 * 1]];
+var eventEffectsChoiceTwo = [[null, null, null, null, null], ["Stage a rescue mission!", -2, "change", -3000, null], ["Pay them off", -2, "change", -2000, null]];
 
 // Event Helpers : Used by various functions to track time-delayed effects or changes
 var previousIncome; // Tracks the income at the start of a delay period
 var realNumberOfBuildingTypes;
+var fEventIncomeReduction = 0;
 
 // Manages initialization of all canvas-based elements
 function createjsinit()
@@ -1024,6 +1026,7 @@ function buildingPlacementEvent(gridSquare)
           newCopyOfBuilding.maxPenguins = pressobject.maxPenguins;
           newCopyOfBuilding.currentPenguins = pressobject.currentPenguins;
           newCopyOfBuilding.allowedTerrain = pressobject.allowedTerrain;
+          buildingRecord[newCopyOfBuilding.type][numberOfBuildingsOwned[newCopyOfBuilding.type]] = newCopyOfBuilding;
 
           // Add the new building to the tile and increment income appropriately
           gridSquare.addChild(newCopyOfBuilding);
@@ -1350,6 +1353,8 @@ function recalculateIncome()
   {
     fTotalPassiveIncome += incomeGeneratedPerBuildingType[i] * buildingTypeMultipliers[i];
   }
+
+  fTotalPassiveIncome += fEventIncomeReduction;
 }
 
 // Updates the displayed toys on screen
@@ -1417,6 +1422,10 @@ function updateClock(time_left) {
     time_left = time_left - 1;
 
     gon.iToys += fTotalPassiveIncome;
+    if (gon.iToys < 0)
+    {
+      gon.iToys = 0;
+    }
     updateToys();
     gon.iTimeLeft = time_left;
     document.getElementById("minutes").innerHTML = Math.floor(time_left / 60);
@@ -1434,6 +1443,7 @@ function clearEvents() {
 
 
 /*******EVENTS*********/
+
 function randomIntFromInterval(min,max) {                                //imported code!
     return Math.floor(Math.random()*(max-min+1)+min);
 }
@@ -1450,7 +1460,12 @@ function callEvent()
   var option1;
   var option2;
 
-  document.getElementById("event-text").innerHTML = eventNames[iEvent] + "\n" + eventDescriptions[iEvent];
+  while (eventInvalid(iEvent))
+  {
+    iEvent = randomIntFromInterval(0, numberOfEvents - 1);
+  }
+
+  document.getElementById("event-text").innerHTML = "<h4 style='text-align: center'>" + eventNames[iEvent] + "</h4>" + "<br>" + eventDescriptions[iEvent];
 
   // Sets up event window and initiates the correct event when an option is chosen.
   $( function() {
@@ -1478,38 +1493,87 @@ function callEvent()
       }
     ]
     });
-    if (checkButtonValidity(iEvent, 2))
+    // Delete the second created button if there is no second option
+    if (eventEffectsChoiceTwo[iEvent][0] == null)
+    {
+      $('#event-popup').dialog( "option", "buttons", [{
+          id: 'option1',
+          text: eventEffectsChoiceOne[iEvent][0],
+          click: function() {
+            startEventLogic(iEvent, true, iSecondsUntilNextEvent);
+            $( this ).dialog( "close" );
+          }
+      }])
+    }
+    else if (checkButtonValidity(iEvent, 2))
       $('#option2').attr('disabled', true);
-    else if (checkButtonValidity(iEvent, 1))
+
+    if (checkButtonValidity(iEvent, 1))
       $('#option1').attr('disabled', true);
   });
+}
+
+// Determines whether the event 'makes sense' for the user -- i.e., No toy mine events when a toy mine doesn't exist.
+function eventInvalid(iEvent)
+{
+  var bInvalid = true;
+  if (eventEffectsChoiceOne[iEvent][1] >= 0)
+  {
+    if (!(numberOfBuildingsOwned[eventEffectsChoiceOne[iEvent][1]] <= 0))
+    {
+      bInvalid = false;
+    }
+  }
+
+  if (eventEffectsChoiceTwo[iEvent][1] >= 0)
+  {
+    if (!(numberOfBuildingsOwned[eventEffectsChoiceTwo[iEvent][1]] <= 0))
+    {
+      bInvalid = false;
+    }
+  }
+  return bInvalid;
 }
 
 // Checks whether the given option is valid for the user
 function checkButtonValidity(iEvent, option)
 {
-  var valid = true;
+  var invalid = false;
   switch(option)
   {
-    case '1':
-      switch (eventEffectsChoiceOne[iEvent][1])
+    case 1:
+      switch(eventEffectsChoiceOne[iEvent][1])
       {
-        case '-2':
-          valid = hasEnoughToys(iEvent, option);
+        case -2:
+          switch (eventEffectsChoiceOne[iEvent][2])
+          {
+            case 'change':
+              invalid = hasEnoughToys(iEvent, option);
+              break;
+          }
+        break;
+        default:
           break;
       }
       break;
-    case '2':
-      switch (eventEffectsChoiceTwo[iEvent][1])
+    case 2:
+      switch(eventEffectsChoiceTwo[iEvent][1])
       {
-        case '-2':
-          valid = hasEnoughToys(iEvent, option);
+        case -2:
+          switch (eventEffectsChoiceTwo[iEvent][2])
+          {
+            case 'change':
+              invalid = hasEnoughToys(iEvent, option);
+              break;
+            }
+            break;
+            default:
+            break;
+          }
           break;
-      }
-    default:
-      break;
   }
-  return valid;
+
+  return invalid;
 }
 
 // Checks whether the user has enough toys for the event occurring
@@ -1517,11 +1581,11 @@ function hasEnoughToys(iEvent, option)
 {
   switch(option)
   {
-    case '1':
-      return ( Math.abs(eventEffectsChoiceOne[iEvent][2]) > gon.iToys && eventEffectsChoiceOne[iEvent][2] < 0 )
+    case 1:
+      return ( Math.abs(eventEffectsChoiceOne[iEvent][3]) > gon.iToys && eventEffectsChoiceOne[iEvent][3] < 0 )
       break;
-    case '2':
-      return ( Math.abs(eventEffectsChoiceTwo[iEvent][2]) > gon.iToys && eventEffectsChoiceTwo[iEvent][2] < 0 )
+    case 2:
+      return ( Math.abs(eventEffectsChoiceTwo[iEvent][3]) > gon.iToys && eventEffectsChoiceTwo[iEvent][3] < 0 )
       break;
   }
 }
@@ -1582,7 +1646,22 @@ function modifyIncome(iEvent, eventInfo)
     case 'delay':
       delayIncome(iEvent, eventInfo);
       break;
+    case 'change':
+      changeIncome(iEvent, eventInfo);
+      break;
     default:
+      break;
+  }
+}
+
+function modifyBuilding(iEvent, eventInfo)
+{
+  var strEventType = eventInfo[2];
+  var building = getBuildingAtRandom(eventInfo[1]);
+  switch (strEventType)
+  {
+    case 'destroy':
+      destroyBuilding(iEvent, eventInfo, building);
       break;
   }
 }
@@ -1607,6 +1686,7 @@ function changeCurrentToys(iEvent, eventInfo)
   }
 }
 
+// Holds the user's income until the end of a given period at which point it is returned in full (almost)
 function delayIncome(iEvent, eventInfo)
 {
   fAmount = eventInfo[3];
@@ -1632,4 +1712,54 @@ function returnIncome(fAmount, fTime, realNumberOfBuildingTypes)
     gon.iToys += previousIncome * fTime / 1000;
 }
 
+// Changes the users' income by a given amount
+function changeIncome(iEvent, eventInfo)
+{
+  fAmount = eventInfo[3];
+  fTime = eventInfo[4];
+
+  fEventIncomeReduction += fAmount;
+  recalculateIncome();
+  setTimeout(resetIncome, fTime)
+}
+
+// Resets the users' income by the given amount
+function resetIncome()
+{
+  fEventIncomeReduction = 0;
+  recalculateIncome();
+}
+
+// Destroys the given building and ensures its tile matches specifications
+function destroyBuilding(iEvent, eventInfo, building)
+{
+  // Recalculate income / total penguins
+  incomeGeneratedPerBuildingType[building.type] -= buildingIncome[building.type] * (building.currentPenguins / penguinCapacity[building.type]);
+  gon.iTotalPenguins -= building.currentPenguins;
+  recalculateIncome();
+
+  // Reset penguin cost to proper value
+  penguinCost = 5;
+  penguinCost = Math.ceil(penguinCost * Math.pow((1.0 + penguinCostScale), totalPenguins));
+  updatePenguinCost(pShop.getChildByName("purchase"));
+
+  // Remove building from map
+  building.parent.isBuilding = false;
+  gon.strBuildingMapSave[(building.parent.x - iMapOffsetX) / iBaseTileLength][building.parent.y / iBaseTileLength][0] = "-1";
+  gon.strBuildingMapSave[(building.parent.x - iMapOffsetX) / iBaseTileLength][building.parent.y / iBaseTileLength][1] = 0;
+  building.parent.removeChild(building);
+
+  // To-Do: Reset map if tile was grown greater than 1x1
+  if (building.size > 1)
+  {
+
+  }
+}
+
 // END OF EVENT TYPE FUNCTIONS
+
+function getBuildingAtRandom(iBuildingType)
+{
+  var iBuildingIndex = randomIntFromInterval(0, numberOfBuildingsOwned[iBuildingType] - 1);
+  return buildingRecord[iBuildingType][iBuildingIndex];
+}
