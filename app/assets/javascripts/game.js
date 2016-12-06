@@ -49,7 +49,7 @@ var iClickingBase = 1;
 var numberOfUpgrades = 3;
 var upgradeNames = ["Upgrade #1", "Upgrade #2", "Upgrade #3"];
 var upgradeDescriptions = ["Description for upgrade #1", "Description for upgrade #2", "Description for upgrade #3"];
-var upgradeFormalDescriptions = ["Clicking gain increased by 20%", "Labour camp efficiency increased by 10%", "Efficiency of all buildings incrased by 10%"];
+var upgradeFormalDescriptions = ["Clicking gain increased by 20%", "Labour camp efficiency increased by 10%", "Efficiency of all buildings increased by 10%"];
 var upgradeCost = [500, 800, 10000];
 // First Value refers to the building they alter. -1 == all buildings; -2 == clicking
 var upgradeType = [[-2, 0.2], [0, 0.1], [-1, 0.1]];
