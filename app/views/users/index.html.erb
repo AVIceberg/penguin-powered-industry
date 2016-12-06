@@ -22,7 +22,7 @@
     <tr>
       <td><%= link_to user.nickname, user %></td>
       <td class="level_data" id= <%= iteration %>><%= user.level %></td>
-      <td class="toys_data" id= <%= iteration %>><%= user.toys %></td>
+      <td class="toys_data" id= <%= iteration %>><%= user.max %></td>
       <% if user_is_logged_in? %>
         <% if user_is_admin? %>
           <td class="option"><%= link_to "Edit User", edit_user_path(user) %></td>
