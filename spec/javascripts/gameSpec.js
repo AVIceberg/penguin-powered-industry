@@ -123,3 +123,16 @@ describe("Building Purchase", function() {
 		expect(building.size).not.toEqual(1);
 	});
 });
+
+describe("Refunds", function() {
+
+	it("building refunds properly", function() {
+		refundBuildingPurchase(0);
+		expect(returnToys()).toEqual(100); 
+	});
+
+	it("penguins refund properly", function() {
+		refundBuildingPurchase(100);
+		expect(gon.iIdlePenguins).toEqual(1);
+	});
+});
