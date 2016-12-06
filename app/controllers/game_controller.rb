@@ -17,7 +17,7 @@ class GameController < ApplicationController
       gon.iUpgradeStates = [0, 0, 0];
       gon.iIdlePenguins = @user.idlepenguins
 
-      gon.iadmin = @user.admin
+      gon.bAdmin = @user.admin
 
       @map = Array.new(16){Array.new(16)}
       16.times do |i|

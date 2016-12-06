@@ -3,6 +3,10 @@
 <div class="event" id="events"></div><br>
   <div id="user-options">
     <button id="save-button">Save</button>
+    <% if user_is_admin? %>
+      <button id="admin-add">Add 10,000 toys </button>
+      <button id="admin-time">Subtract a minute from your time </button>
+    <% end %>
   </div>
 <div class="timer">
   <span id="minutes" class="odometer"></span><span> minutes</span>
@@ -14,7 +18,7 @@
   </div>
 
 <div id="event-popup">
-  <p id="event-text"><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span></p>
+  <p id="event-text"></p>
 </div>
 
 

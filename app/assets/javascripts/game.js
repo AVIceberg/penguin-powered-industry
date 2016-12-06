@@ -104,23 +104,20 @@ function createjsinit()
   createjs.Ticker.addEventListener("tick",tick);
 }
 
-// If the user is an admin, several debug buttons are created
-function admin()
+// If the user is an admin, several debug buttons are activated for the user
+function adminPrivileges()
 {
-  if (gon.iadmin == true)
+  if (gon.bAdmin)
   {
-    document.getElementById("nickname").innerHTML += "<font color='red'>(ADMIN)</font>";
+    document.getElementById("nickname").innerHTML += "<font color='red'> (ADMIN)</font>";
 
-    var user_options = document.getElementById("user-options");
-    var add10000 = document.createElement("BUTTON");
-    add10000.appendChild(document.createTextNode("Add 10000 toys"));
-    add10000.setAttribute("onclick", "gon.iToys += 10000; updateToys();");
-    var substractminute =document.createElement("BUTTON");
-    substractminute.appendChild(document.createTextNode("Substract a minute"));
-    substractminute.setAttribute("onclick", "gon.iTimeLeft -= 60;");
+    // Set addButton to give 10,000 toys when clicked
+    var addButton = document.getElementById("admin-add");
+    addButton.setAttribute("onclick", "gon.iToys += 10000; updateToys();");
 
-    user_options.appendChild(add10000);
-    user_options.appendChild(substractminute);
+    // Set subtractButton to subtract a minute from your time when clicked.
+    var subtractButton =document.getElementById("admin-time");
+    subtractButton.setAttribute("onclick", "gon.iTimeLeft -= 60;");
   }
 }
 
@@ -1331,7 +1328,7 @@ function initialize()
     updateToys();
 
     interval = setInterval(updateClock(gon.iTimeLeft), 1000);
-    admin();
+    adminPrivileges();
 
     // Sets the amount of time the odometer expects the animation to go on for.
     window.odometerOptions = {
