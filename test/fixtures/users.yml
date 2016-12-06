@@ -12,6 +12,7 @@
 #   nickname: MyString
 #   email: MyString
 
+# Admin User
 Kate:
   fname: Kate
   lname: Irrelevant
@@ -23,6 +24,7 @@ Kate:
   admin: true
   password_digest: <%= BCrypt::Password.create('testing') %>
 
+# Regular User
 Alex:
   fname: Alex
   lname: Zheng
@@ -33,7 +35,10 @@ Alex:
   max: 0
   admin: false
   password_digest: <%= BCrypt::Password.create('testing') %>
+  timeleft: 1000 * 45
+  toys: 0
 
+# New user
 Bob:
   fname: Bob
   lname: Bobbington
@@ -44,7 +49,7 @@ Bob:
   max: 0
   admin: false
   password_digest: <%= BCrypt::Password.create('testing') %>
-  
+
 Cat:
   fname: Cate
   lname: Lastcat

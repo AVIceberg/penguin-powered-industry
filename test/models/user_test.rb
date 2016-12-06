@@ -89,13 +89,18 @@ class UserTest < ActiveSupport::TestCase
     @user.save
     assert_not duplicated_user.valid?
   end
-  
+
   test "toys >= 0" do
     assert @user.valid?
     @user.toys = -1
     assert_not @user.valid?
     @user.toys = 8
     assert @user.valid?
+  end
+
+  test "idle penguins >= 0" do
+    @user.idlepenguins = -1
+    assert_not @user.valid?
   end
 
   # test "the truth" do

@@ -37,7 +37,6 @@ class User < ActiveRecord::Base
     numericality: { greater_than_or_equal_to: 0}
   validates :toys,
     numericality: { greater_than_or_equal_to: 0}
-    
-  
-
+  validates :idlepenguins,
+    numericality: {only_integer: true, greater_than_or_equal_to: 0}
 end
