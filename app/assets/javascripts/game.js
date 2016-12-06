@@ -1763,3 +1763,10 @@ function getBuildingAtRandom(iBuildingType)
   var iBuildingIndex = randomIntFromInterval(0, numberOfBuildingsOwned[iBuildingType] - 1);
   return buildingRecord[iBuildingType][iBuildingIndex];
 }
+
+
+// FUNCTIONS USED FOR TESTING
+
+function returnToys() {
+  return gon.iToys;
+}
