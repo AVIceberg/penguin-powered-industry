@@ -26,7 +26,7 @@ class UserTest < ActiveSupport::TestCase
   end
 
   # Level test
-  test "level > 1" do
+  test "level >= 1" do
     @user.level = 0
     assert_not @user.valid?
   end
@@ -83,7 +83,7 @@ class UserTest < ActiveSupport::TestCase
   end
 
   #test case for uniqueness
-  test "email address shoud be unique" do
+  test "email address should be unique" do
     duplicated_user = @user.dup
     duplicated_user.email = @user.email.upcase
     @user.save

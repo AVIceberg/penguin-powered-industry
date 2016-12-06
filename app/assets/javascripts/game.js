@@ -1092,7 +1092,7 @@ function displayTileTooltip(originalX, originalY, gridSquare, tileTooltip)
       tileTooltip.getChildByName("text").text += "\nCapacity: " + gridSquare.getChildByName("building").currentPenguins + " / " + gridSquare.getChildByName("building").maxPenguins + "\n";
       tileTooltip.getChildByName("text").text += "Generating: " +
        (gridSquare.getChildByName("building").currentPenguins / penguinCapacity[gridSquare.getChildByName("building").type])
-        * buildingIncome[gridSquare.getChildByName("building").type] + " toys";
+        * buildingIncome[gridSquare.getChildByName("building").type] * buildingTypeMultipliers[gridSquare.getChildByName("building").type] + " toys";
     }
     // Adds tooltip to stage offset from the current position
     tileTooltip.x = stageCanvas.mouseX;
@@ -1231,22 +1231,22 @@ function upgradeEventHandler(upgrade, iIndex, upgradeShop, upgradeTooltip, butto
       gon.iUpgradeStates[iIndex] = 1;
 
       // Activates the upgrade accordingly
-      var multiplerAmount = 1.0 + upgradeType[iIndex][1];
+      var multiplierAmount = 1.0 + upgradeType[iIndex][1];
 
       if (upgrade.type == -1)
       {
         for (i = 0 ; i < numberOfBuildingTypes ; i++)
         {
-          buildingTypeMultipliers[i] *= multiplerAmount;
+          upgradeBuildingMultiplier(i, multiplierAmount);
         }
       }
       else if (upgrade.type == -2)
       {
-        fClickMultiplier *= multiplerAmount;
+        upgradeClickMultiplier(multiplierAmount);
       }
       else
       {
-        buildingTypeMultipliers[upgrade.type] *= multiplerAmount;
+        upgradeBuildingMultiplier(upgrade.type, multiplierAmount);
       }
       recalculateIncome();
     }
@@ -1268,6 +1268,16 @@ function upgradeEventHandler(upgrade, iIndex, upgradeShop, upgradeTooltip, butto
     stageCanvas.removeChild(upgradeTooltip);
   });
 
+}
+
+function upgradeBuildingMultiplier(iIndex, multiplierAmount)
+{
+  buildingTypeMultipliers[iIndex] *= multiplierAmount;
+}
+
+function upgradeClickMultiplier(multiplierAmount)
+{
+  fClickMultiplier *= multiplierAmount;
 }
 
 // If the user has enough toys, the upgrade is purchased
@@ -1335,7 +1345,7 @@ function initialize()
       duration: 800
     };
 
-    setTimeout(callEvent, 1000 * 5);
+    setTimeout(callEvent, 1000 * 60); // Call the first event after 1 minute
 }
 
 // Increments the user's local toys (gon.iToys) by an amount determined by their given multiplier.
@@ -1518,20 +1528,20 @@ function callEvent()
 // Determines whether the event 'makes sense' for the user -- i.e., No toy mine events when a toy mine doesn't exist.
 function eventInvalid(iEvent)
 {
-  var bInvalid = true;
+  var bInvalid = false;
   if (eventEffectsChoiceOne[iEvent][1] >= 0)
   {
-    if (!(numberOfBuildingsOwned[eventEffectsChoiceOne[iEvent][1]] <= 0))
+    if ((numberOfBuildingsOwned[eventEffectsChoiceOne[iEvent][1]] <= 0))
     {
-      bInvalid = false;
+      bInvalid = true;
     }
   }
 
   if (eventEffectsChoiceTwo[iEvent][1] >= 0)
   {
-    if (!(numberOfBuildingsOwned[eventEffectsChoiceTwo[iEvent][1]] <= 0))
+    if ((numberOfBuildingsOwned[eventEffectsChoiceTwo[iEvent][1]] <= 0))
     {
-      bInvalid = false;
+      bInvalid = true;
     }
   }
   return bInvalid;

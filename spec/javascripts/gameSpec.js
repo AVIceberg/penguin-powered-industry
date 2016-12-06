@@ -46,7 +46,7 @@ describe("Passive Events", function() {
 		expect(fTotalPassiveIncome).toEqual(fZero);
 	});
 
-	it("income changes upon change event", function() {
+	it("Income successfully changed upon change event", function() {
 		fTotalPassiveIncome = 5.0;
 		var prevIncome = fTotalPassiveIncome;
 		changeIncome(iEvent, eventInfo);
@@ -56,7 +56,7 @@ describe("Passive Events", function() {
 
 describe("Toy Events", function() {
 
-	it("toys dont drop below zero", function() {
+	it("Number of toys cannot drop below 0", function() {
 		fZero = 0.0;
 		eventInfo[3] = -6;        //subtraction of 6 toys
 		gon.iToys = 5.0;
@@ -64,7 +64,7 @@ describe("Toy Events", function() {
 		expect(returnToys()).toEqual(fZero);
 	});
 
-	it("toys add properly", function() {
+	it("Number of toys is added correctly", function() {
 		fFour = 4.0;
 		eventInfo[3] = 4;
 		gon.iToys = 0.0;
@@ -126,9 +126,9 @@ describe("Building Purchase", function() {
 
 describe("Refunds", function() {
 
-	it("building refunds properly", function() {
+	it("Buildings are refunded appropriately", function() {
 		refundBuildingPurchase(0);
-		expect(returnToys()).toEqual(100); 
+		expect(returnToys()).toEqual(100);
 	});
 
 	it("penguins refund properly", function() {
@@ -159,5 +159,21 @@ describe("Invalid Events", function() {
 	it("works", function() {
 		var boolean = eventInvalid(1);     //toy mine event; no toy mine exists
 		expect(boolean).not.toEqual(true);
+	});
+});
+
+describe("Upgrades", function() {
+	it("Building multiplier successfully changed", function() {
+		buildingTypeMultiplier[0] = 1.0;
+		var multiplierAmount = 1.1;
+		upgradeBuildingMultiplier(0, multiplierAmount);
+		expect(buildingTypeMultiplier[0]).toEqual(1.1);
+	});
+
+	it("Click multiplier successfully changed", function() {
+		fClickMultiplier = 1.0;
+		var multiplierAmount = 1.1;
+		upgradeClickMultiplier(multiplierAmount);
+		expect(fClickMultiplier).toEqual(1.1);
 	});
 });
