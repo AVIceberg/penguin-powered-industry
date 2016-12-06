@@ -10,7 +10,7 @@ require 'active_support/time'
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 #                   END
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-
+# Note: All Jasmine tests are located under the javascripts file in gameSpec.js!
 
 describe 'Game Tests' do
   it "Click Increments Successfully", :js => true do
