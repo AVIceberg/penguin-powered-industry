@@ -136,3 +136,25 @@ describe("Refunds", function() {
 		expect(gon.iIdlePenguins).toEqual(1);
 	});
 });
+
+describe("Penguins", function() {
+
+	it("can be purchased", function() {
+		gon.iIdlePenguins = 0;
+		gon.iToys = 5000.0;
+		purchasePenguin();
+		expect(gon.iIdlePenguins).toEqual(1);
+	});
+
+	it("cost increases as it gets purchased", function() {
+		gon.iToys = 5000.0;
+		var temp = penguinCost;
+		purchasePenguin();
+		expect(penguinCost).not.toEqual(temp);
+	});
+});
+
+describe("Upgrades", function() {
+
+	
+});

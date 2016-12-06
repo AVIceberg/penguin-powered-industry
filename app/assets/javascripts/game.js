@@ -359,11 +359,7 @@ function addPenguinShopButtonEvent(pShopButton, pShop) {
     {
       //Logic for buying penguins
       if(gon.iToys >= penguinCost) {
-        gon.iToys = gon.iToys - penguinCost;
-        gon.iIdlePenguins = gon.iIdlePenguins + 1;
-        updatePenValue(pShop.getChildByName("pPen"));
-        penguinCost = Math.ceil(penguinCost * (1.0 + penguinCostScale));
-        updatePenguinCost(pShop.getChildByName("purchase"));
+        purchasePenguin();
       }
       else
       {
@@ -372,6 +368,15 @@ function addPenguinShopButtonEvent(pShopButton, pShop) {
       }
     }
   });
+}
+
+//Purchase penguin
+function purchasePenguin() {
+  gon.iToys = gon.iToys - penguinCost;
+  gon.iIdlePenguins = gon.iIdlePenguins + 1;
+  updatePenValue(pShop.getChildByName("pPen"));
+  penguinCost = Math.ceil(penguinCost * (1.0 + penguinCostScale));
+  updatePenguinCost(pShop.getChildByName("purchase"));
 }
 
 // Updates the number of penguins visually displayed in the pen
