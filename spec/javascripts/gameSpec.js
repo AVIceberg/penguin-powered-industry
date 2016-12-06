@@ -154,7 +154,10 @@ describe("Penguins", function() {
 	});
 });
 
-describe("Upgrades", function() {
+describe("Invalid Events", function() {
 
-	
+	it("works", function() {
+		var boolean = eventInvalid(1);     //toy mine event; no toy mine exists
+		expect(boolean).not.toEqual(true);
+	});
 });
