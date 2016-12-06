@@ -1088,17 +1088,33 @@ function displayTileTooltip(originalX, originalY, gridSquare, tileTooltip)
 
     if (gridSquare.isBuilding == true)
     {
-      tileTooltip.getChildByName("text").text += "Building: " + buildingTypes[gridSquare.buildingType];
-      tileTooltip.getChildByName("text").text += "\nCapacity: " + gridSquare.getChildByName("building").currentPenguins + " / " + gridSquare.getChildByName("building").maxPenguins + "\n";
-      tileTooltip.getChildByName("text").text += "Generating: " +
-       (gridSquare.getChildByName("building").currentPenguins / penguinCapacity[gridSquare.getChildByName("building").type])
-        * buildingIncome[gridSquare.getChildByName("building").type] * buildingTypeMultipliers[gridSquare.getChildByName("building").type] + " toys";
+      tileTooltip.getChildByName("text").text += "Building: " + getBuildingName(gridSquare.getChildByName("building").type);
+      tileTooltip.getChildByName("text").text += "\nCapacity: " + getCapacity(gridSquare.getChildByName("building")) + "\n";
+      tileTooltip.getChildByName("text").text += "Generating: " + getCurrentGeneration(gridSquare.getChildByName("building")).toFixed(2) + " toys";
     }
+
+    // (gridSquare.getChildByName("building").currentPenguins / penguinCapacity[gridSquare.getChildByName("building").type])
+    //  * buildingIncome[gridSquare.getChildByName("building").type] * buildingTypeMultipliers[gridSquare.getChildByName("building").type]
     // Adds tooltip to stage offset from the current position
     tileTooltip.x = stageCanvas.mouseX;
     tileTooltip.y = stageCanvas.mouseY;
     stageCanvas.addChild(tileTooltip);
   }
+}
+
+function getBuildingName(iIndex)
+{
+  return buildingTypes[iIndex];
+}
+
+function getCapacity(building)
+{
+  return building.currentPenguins + " / " + penguinCapacity[building.type];
+}
+
+function getCurrentGeneration(building)
+{
+  return (building.currentPenguins / penguinCapacity[building.type]) * buildingIncome[building.type] * buildingTypeMultipliers[building.type];
 }
 
 // Grabs all tiles relevant to the building being placed and adds them to an array

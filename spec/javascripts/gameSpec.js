@@ -177,3 +177,28 @@ describe("Upgrades", function() {
 		expect(fClickMultiplier).toEqual(1.1);
 	});
 });
+
+decribe("Tooltips", function() {
+	it("Building name returned correctly", function() {
+		var buildingName = getBuildingName(0);
+		expect(buildingName).toEqual("Labour Camp");
+
+		buildingName = getBuildingName(1);
+		expect(buildingName).toEqual("Toy Mine");
+	});
+
+	it("Building capacity returned correctly", function() {
+		var building = purchaseBuilding("Labour Camp", 0);
+		building.currentPenguins = 2;
+		var strCapacity = getCapacity(building);
+		expect(strCapacity).toEqual("2 / 20");
+	});
+
+	it("Current Generation should be returned correctly", function() {
+		var building = purchaseBuilding("Labour Camp", 0);
+		building.currentPenguins = 2;
+		buildingTypeMultipliers[0] = 1.0 // Ensure the answer is not somehow manipulated
+		var fValue = getCurrentGeneration(building);
+		expect(fValue).toEqual(2);
+	});
+});
